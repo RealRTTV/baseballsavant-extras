@@ -70,6 +70,11 @@ export default defineUnlistedScript(() => {
                     "inverse": true
                 }
             ];
+            spec.pitching.props.push({
+                "label": "FPS %",
+                "value": "first_pitch_strike",
+                "percent_value": "percent_rank_first_pitch_strike"
+            });
         }
     };
 });

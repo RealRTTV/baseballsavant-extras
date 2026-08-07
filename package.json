@@ -15,9 +15,14 @@
     "postinstall": "wxt prepare"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.5.2",
     "typescript": "^5.9.3",
     "vite": "^8.1.5",
     "web-ext": "^10.5.0",
-    "wxt": "^0.20.27"
+    "wxt": "^0.21.3"
+  },
+  "dependencies": {
+    "idb": "^8.0.3",
+    "papaparse": "^5.5.4"
   }
 }

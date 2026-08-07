@@ -1,0 +1,1 @@
+export type { CustomStat } from './module.ts';

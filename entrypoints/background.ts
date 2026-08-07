@@ -1,6 +1,12 @@
 import {patchPercentileRankingsSpec} from "@/utils/patch-percentile-rankings-spec";
+import {statcastCustomStats} from "@/utils/statcast_fetch.ts";
 
 export default defineBackground(() => {
+    indexBundleJsMixin();
+    statcastCustomStats().then(_ => {});
+});
+
+function indexBundleJsMixin() {
     browser.webRequest.onBeforeRequest.addListener(
         (details) => {
             if (!details.url.includes('index.bundle.js')) return {};
@@ -34,7 +40,7 @@ export default defineBackground(() => {
         { urls: ['*://builds.mlbstatic.com/baseballsavant.mlb.com/*'], types: ['script'] },
         ['blocking'],
     );
-});
+}
 
 function badge(text: string) {
     browser.browserAction.setBadgeText({ text });
