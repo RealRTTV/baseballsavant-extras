@@ -1,8 +1,8 @@
-import {statcastCustomStats} from "@/utils/extension/statcast.ts";
+import {getStatcastData} from "@/utils/extension/statcast.ts";
 
 const PERCENTILE_RANKINGS_SPEC = /(?:^|[\s,;{(=])([A-Za-z_$][\w$]*)\s*=\s*\{\s*batterValue\s*:\s*\{\s*props\s*:/;
 
-export function patchPercentileRankingsSpec(src: string): string {
+function patchPercentileRankingsSpec(src: string): string {
     const match = src.match(PERCENTILE_RANKINGS_SPEC);
 
     if (match === null || match[1] === undefined) {
@@ -21,7 +21,7 @@ export function patchPercentileRankingsSpec(src: string): string {
 
 export default defineBackground(() => {
     indexBundleJsMixin();
-    statcastCustomStats().then(_ => {});
+    getStatcastData().then(_ => {});
 });
 
 function indexBundleJsMixin() {
