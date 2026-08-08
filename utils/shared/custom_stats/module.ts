@@ -8,7 +8,7 @@ export interface CustomStat<Self> {
 
     value(self: Self): number;
 
-    value_pretty(self: Self): string;
+    value_pretty(self: Self): number;
 }
 
 export function distributionData<T extends CustomStat<T>>(stat: T, by_player: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {

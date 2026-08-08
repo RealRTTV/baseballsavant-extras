@@ -12,6 +12,6 @@ export const FIRST_PITCH_STRIKE = {
         }
     },
     value: (self): number => self.n / self.t,
-    value_pretty: (self): string => (self.n / self.t).toFixed(1),
+    value_pretty: (self): number => Number((100.0 * self.n / self.t).toFixed(1)),
     name: "first_pitch_strike",
 } satisfies CustomStat<{ n: number, t: number }>;

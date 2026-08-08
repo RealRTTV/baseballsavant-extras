@@ -19,6 +19,25 @@ function patchPercentileRankingsSpec(src: string): string {
     return src.replace(line, hit => `typeof __savantExtras!=="undefined"&&__savantExtras.onPercentileSpec(${varName}),${hit}`)
 }
 
+const STAT_DEFINITIONS = /([A-Za-z_$][\w$]*)\s*=\s*\[['"]hard_hit_percent['"]\s*,/;
+
+function patchStatDefinitions(src: string): string {
+    const match = src.match(STAT_DEFINITIONS);
+
+    if (match === null || match[1] === undefined) {
+        throw new Error(`anchor missed: STAT_DEFINITIONS=${!!STAT_DEFINITIONS} not found.`);
+    }
+
+    const varName = match[1];
+    const line = new RegExp(`${varName}\s*=\s*\\[['"]hard_hit_percent['"],\s*[\\S\\s]*?\],\s*`);
+
+    if (!line.test(src)) {
+        throw new Error("second anchor missed.");
+    }
+
+    return src.replace(line, hit => { console.log(hit); return `${hit}__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatDefinitions(${varName}),` })
+}
+
 export default defineBackground(() => {
     indexBundleJsMixin();
     getStatcastData().then(_ => {});
@@ -37,13 +56,15 @@ function indexBundleJsMixin() {
             stream.onstop = async () => {
                 out += decoder.decode();
                 try {
-                    let runtime: string | undefined = await fetch(browser.runtime.getURL('/mixin.js')).then(r => r.text());
+                    let runtime: string | undefined = await fetch(browser.runtime.getURL('/main-mixin.js')).then(r => r.text());
 
                     if (!runtime) {
                         throw new Error('runtime not loaded');
                     }
 
-                    out = `${runtime}\n;${patchPercentileRankingsSpec(out)}`;
+                    out = patchPercentileRankingsSpec(out);
+                    out = patchStatDefinitions(out);
+                    out = runtime + '\n;' + out;
                     badge('');
                 } catch (err) {
                     console.error('[baseballsavant-extras]', err);
