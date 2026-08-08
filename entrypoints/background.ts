@@ -37,7 +37,7 @@ function patchStatDefinitions(src: string): string {
         throw new Error("second anchor missed.");
     }
 
-    return src.replace(line, hit => { console.log(hit); return `${hit}__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatDefinitions(${varName}),` })
+    return src.replace(line, hit => `${hit}__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatDefinitions(${varName}),`)
 }
 
 export default defineBackground(() => {
@@ -76,9 +76,10 @@ function indexBundleJsMixin() {
                 } catch (err) {
                     console.error('[baseballsavant-extras]', err);
                     badge('!');
+                } finally {
+                    stream.write(new TextEncoder().encode(out));
+                    stream.close();
                 }
-                stream.write(new TextEncoder().encode(out));
-                stream.close();
             };
 
             return {};

@@ -18,7 +18,7 @@ export async function getStatcastData() {
     await calculateStats(db);
 }
 
-interface StatcastDB extends DBSchema {
+export interface StatcastDB extends DBSchema {
     date: {
         key: string;
         value: string;
@@ -71,8 +71,7 @@ function registerMessageEvents(db: IDBPDatabase<StatcastDB>) {
                 const stat = STATS.find(entry => entry.name === statName)!;
                 const season: number = msg.season;
                 return await messageWrapper<{ mean: number, stdev: number }>(async () => {
-                    const [mean, stdev] = DISTRIBUTION_METRICS[`${season}:${stat.name}`] ?? [0, 1];
-                    return { mean, stdev };
+
                 });
             }
             default:
@@ -135,7 +134,7 @@ function* seasonDates(season: number): Generator<string> {
     }
 }
 
-async function getStatFromDB<T>(stat: CustomStat<T>, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<T | undefined> {
+export async function getStatFromDB<T>(stat: CustomStat<T>, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<T | undefined> {
     const cache: StatCache<T> | undefined = await db.get('stats', [season, stat.name]);
 
     if (cache === undefined) {
@@ -143,6 +142,11 @@ async function getStatFromDB<T>(stat: CustomStat<T>, season: number, player: num
     }
 
     return cache.by_player[String(player)];
+}
+
+export function getDistributionData<T>(stat: CustomStat<T>, season: number): { mean: number, stdev: number } {
+    const [mean, stdev] = DISTRIBUTION_METRICS[`${season}:${stat.name}`] ?? [0, 1];
+    return { mean, stdev };
 }
 
 async function recacheAllPlays(season: number, db: IDBPDatabase<StatcastDB>) {
