@@ -1,5 +1,23 @@
-import {patchPercentileRankingsSpec} from "@/utils/patch-percentile-rankings-spec";
-import {statcastCustomStats} from "@/utils/statcast_fetch.ts";
+import {statcastCustomStats} from "@/utils/extension/statcast.ts";
+
+const PERCENTILE_RANKINGS_SPEC = /(?:^|[\s,;{(=])([A-Za-z_$][\w$]*)\s*=\s*\{\s*batterValue\s*:\s*\{\s*props\s*:/;
+
+export function patchPercentileRankingsSpec(src: string): string {
+    const match = src.match(PERCENTILE_RANKINGS_SPEC);
+
+    if (match === null || match[1] === undefined) {
+        throw new Error(`anchor missed: PERCENTILE_RANKINGS_SPEC=${!!PERCENTILE_RANKINGS_SPEC} not found.`);
+    }
+
+    const varName = match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const line = new RegExp(`Object\\.keys\\(${varName}\\)\\.forEach\\(`);
+
+    if (!line.test(src)) {
+        throw new Error("second anchor missed.");
+    }
+
+    return src.replace(line, hit => `typeof __savantExtras!=="undefined"&&__savantExtras.onPercentileSpec(${varName}),${hit}`)
+}
 
 export default defineBackground(() => {
     indexBundleJsMixin();
@@ -19,7 +37,7 @@ function indexBundleJsMixin() {
             stream.onstop = async () => {
                 out += decoder.decode();
                 try {
-                    let runtime: string | undefined = await fetch(browser.runtime.getURL('/mixin-percentile-rankings-spec.js')).then(r => r.text());
+                    let runtime: string | undefined = await fetch(browser.runtime.getURL('/mixin.js')).then(r => r.text());
 
                     if (!runtime) {
                         throw new Error('runtime not loaded');

@@ -1,4 +1,6 @@
-import type {StatcastRow} from "@/utils/statcast_row.ts";
+export { FIRST_PITCH_STRIKE } from './first-pitch-strike.ts';
+
+import type {StatcastRow} from "@/utils/shared/data_types/statcast-row.ts";
 
 export interface CustomStat<Self> {
     /** `snake_case` */
@@ -19,3 +21,4 @@ export function distributionData<T extends CustomStat<T>>(stat: T, by_player: Re
 
     return [mean, Math.sqrt(variance)];
 }
+
