@@ -1,18 +1,21 @@
 import type {StatcastRow} from "@/utils/statcast_row.ts";
 
-export interface CustomStatDefinition {
+export interface CustomStat<Self> {
     /** `snake_case` */
     name: string;
+
+    apply(rows: StatcastRow[], map: Record<string, Self>): void;
+
+    value(self: Self): number;
+
+    value_pretty(self: Self): string;
 }
 
-export interface CustomStat<Self> extends CustomStatDefinition {
-    from(rows: StatcastRow[]): Self;
+export function distributionData<T extends CustomStat<T>>(stat: T, by_player: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {
+    const values = Object.entries(by_player).filter(([key, _]) => qualifiedPitchers.has(Number(key))).map(([_, instance]) => stat.value(instance));
 
-    serialize(self: Self): string;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;
 
-    deserialize(s: string): Self;
-
-    fold(lhs: Self, rhs: Self): Self;
-
-    value(self: Self): string;
+    return [mean, Math.sqrt(variance)];
 }
