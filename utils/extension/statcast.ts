@@ -7,12 +7,7 @@ import {qualifiedPitchers} from "@/utils/extension/statsapi.ts";
 import { ENABLED_SEASONS, STATS, type MessageResponse } from "@/utils/shared/statcast.ts";
 
 export async function getStatcastData() {
-    const db = await openDB<StatcastDB>('statcast-data', 1, {
-        upgrade(db) {
-            db.createObjectStore('date');
-            db.createObjectStore('stats');
-        }
-    });
+    const db = await createDB();
 
     registerMessageEvents(db);
 
@@ -43,6 +38,15 @@ const DISTRIBUTION_METRICS: Record<string, [number, number]> = {};
 
 const QUALIFIED_PITCHERS_BY_SEASON: Record<number, Set<number>> = {};
 
+async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
+    return openDB<StatcastDB>('statcast-data', 1, {
+        upgrade(db) {
+            db.createObjectStore('date');
+            db.createObjectStore('stats');
+        }
+    });
+}
+
 function registerMessageEvents(db: IDBPDatabase<StatcastDB>) {
     async function messageWrapper<T>(closure: () => Promise<T>): Promise<MessageResponse<T>> {
         try {
@@ -53,6 +57,7 @@ function registerMessageEvents(db: IDBPDatabase<StatcastDB>) {
     }
 
     browser.runtime.onMessage.addListener(async (msg, _) => {
+        console.log('called');
         switch (msg.type) {
             case 'getStatFromDB': {
                 const statName: string = msg.stat;

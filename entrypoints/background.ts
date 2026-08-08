@@ -1,4 +1,6 @@
 import {getStatcastData} from "@/utils/extension/statcast.ts";
+import type {ServerValsPatch} from "@/utils/shared/server-vals-patch.ts";
+import {createServerValsPatch} from "@/utils/extension/server-vals-patch.ts";
 
 const PERCENTILE_RANKINGS_SPEC = /(?:^|[\s,;{(=])([A-Za-z_$][\w$]*)\s*=\s*\{\s*batterValue\s*:\s*\{\s*props\s*:/;
 
@@ -43,6 +45,8 @@ export default defineBackground(() => {
     getStatcastData().then(_ => {});
 });
 
+const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
+
 function indexBundleJsMixin() {
     browser.webRequest.onBeforeRequest.addListener(
         (details) => {
@@ -56,15 +60,18 @@ function indexBundleJsMixin() {
             stream.onstop = async () => {
                 out += decoder.decode();
                 try {
-                    let runtime: string | undefined = await fetch(browser.runtime.getURL('/main-mixin.js')).then(r => r.text());
+                    let mixinCode: string | undefined = await fetch(browser.runtime.getURL('/main-mixin.js')).then(r => r.text());
 
-                    if (!runtime) {
-                        throw new Error('runtime not loaded');
+                    if (!mixinCode) {
+                        throw new Error('mixinCode not loaded');
                     }
+
+                    const playerId: number = Number(((details as any).originUrl as string | undefined)?.match(PLAYER_ID_REGEX)?.[1]);
+                    const patch: ServerValsPatch = await createServerValsPatch(playerId);
 
                     out = patchPercentileRankingsSpec(out);
                     out = patchStatDefinitions(out);
-                    out = runtime + '\n;' + out;
+                    out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + '\n;' + mixinCode + '\n;' + out;
                     badge('');
                 } catch (err) {
                     console.error('[baseballsavant-extras]', err);

@@ -6,6 +6,7 @@ export default defineContentScript({
     world: 'ISOLATED',
     main() {
         window.addEventListener('message', (e: MessageEvent<any>) => {
+            console.log('received request', e.data);
             if (e.source !== window || !isRequest(e.data)) {
                 return;
             }
