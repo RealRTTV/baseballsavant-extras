@@ -7,8 +7,6 @@ export interface CustomStat<Self> {
     apply(rows: StatcastRow[], map: Record<string, Self>): void;
 
     value(self: Self): number;
-
-    valuePretty(self: Self): number;
 }
 
 export function distributionData<T extends CustomStat<T>>(stat: T, byPlayer: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {

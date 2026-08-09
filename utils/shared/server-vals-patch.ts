@@ -1,6 +1,7 @@
 export type ServerValsPatch = {
     playerId: number,
-    patches: StatPatch[]
+    patches: StatPatch[],
+    summaryPatches: SummaryPatch[],
 };
 
 export type StatPatch = {
@@ -8,4 +9,12 @@ export type StatPatch = {
     key: string,
     value: number | null,
     percentile: number | null,
+};
+
+export type SummaryPatch = {
+    metric: string,
+    avg_metric: number,
+    stddev_metric: number,
+    n: number,
+    season: number,
 };

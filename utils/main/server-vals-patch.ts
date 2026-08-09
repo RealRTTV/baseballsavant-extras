@@ -28,4 +28,19 @@ export function applyServerValsPatch(serverVals: ServerVals, patches: ServerVals
             (statcastSeason as any)[`percent_rank_${key}_unrounded`] ??= null;
         }
     }
+
+    for (const summary of patches.summaryPatches) {
+        const year = serverVals.metricSummaryStats[String(summary.season)];
+
+        if (year === undefined) {
+            continue;
+        }
+
+        year[summary.metric] = {
+            metric: summary.metric,
+            avg_metric: summary.avg_metric,
+            stddev_metric: summary.stddev_metric,
+            n: String(summary.n),
+        };
+    }
 }
