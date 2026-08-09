@@ -1,4 +1,4 @@
-import {FIRST_PITCH_STRIKE} from "@/utils/shared/custom_stats";
+import {FIRST_PITCH_STRIKE} from "@/utils/shared/stats/custom_stats";
 
 export function modifyPercentileSpec(percentileSpec: Record<string, any>) {
     percentileSpec.pitching.props.push({
