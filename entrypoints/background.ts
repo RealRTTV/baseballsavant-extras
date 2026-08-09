@@ -21,23 +21,42 @@ function patchPercentileRankingsSpec(src: string): string {
     return src.replace(line, hit => `typeof __savantExtras!=="undefined"&&__savantExtras.onPercentileSpec(${varName}),${hit}`)
 }
 
-const STAT_DEFINITIONS = /([A-Za-z_$][\w$]*)\s*=\s*\[['"]hard_hit_percent['"]\s*,/;
+function patchStatFormatting(src: string): string {
+    const ANCHORS = [
+        { name: "threeDPNoInt", firstEntry: "ba" },
+        { name: "threeDP", firstEntry: "delta_pitcher_run_exp" },
+        { name: "twoDP", firstEntry: "catcher_exchange" },
+        { name: "oneDP", firstEntry: "hard_hit_percent" },
+        { name: "zeroDP", firstEntry: "barrel" },
+        { name: "withPercentOneDP", firstEntry: "rate_att_xb" },
+        { name: "withPercentZeroDP", firstEntry: "rate_sbx" },
+        { name: "degrees", firstEntry: "bat_path_angle" },
+        { name: "feetAndInches", firstEntry: "height_in_inches" },
+    ];
 
-function patchStatDefinitions(src: string): string {
-    const match = src.match(STAT_DEFINITIONS);
+    const REGEX_FOR_ANCHOR = (firstEntry: string) => new RegExp(`([A-Za-z_$][\\w$]*)\\s*=\\s*\\[['"]${firstEntry}\\s*['"],?`);
 
-    if (match === null || match[1] === undefined) {
-        throw new Error(`anchor missed: STAT_DEFINITIONS=${!!STAT_DEFINITIONS} not found.`);
+    let anchors = ANCHORS.map(({ name, firstEntry }) => ({ name, firstEntry, regex: REGEX_FOR_ANCHOR(firstEntry) }));
+
+    let matches = anchors.map(anchor => ({ match: src.match(anchor.regex)?.[1], ...anchor }));
+
+    for (const match of matches) {
+        let errorMessage = '';
+        if (match.match === undefined) {
+            errorMessage += `anchor missed: ${match.name}=${match.regex} not found.\n`;
+        }
+        if (errorMessage.length > 0) {
+            throw new Error(errorMessage.slice(0, -1));
+        }
     }
 
-    const varName = match[1];
-    const line = new RegExp(`${varName}\s*=\s*\\[['"]hard_hit_percent['"],\s*[\\S\\s]*?\],\s*`);
+    const replacement = /,(\w+)\s*=\s*{\s*placeholder:\s*['"]--['"]/;
 
-    if (!line.test(src)) {
-        throw new Error("second anchor missed.");
+    if (!replacement.test(src)) {
+        throw new Error(`stat formatting anchor missed`);
     }
 
-    return src.replace(line, hit => `${hit}__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatDefinitions(${varName}),`)
+    return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')})${hit}`)
 }
 
 export default defineBackground(() => {
@@ -70,7 +89,7 @@ function indexBundleJsMixin() {
                     const patch: ServerValsPatch = await createServerValsPatch(playerId);
 
                     out = patchPercentileRankingsSpec(out);
-                    out = patchStatDefinitions(out);
+                    out = patchStatFormatting(out);
                     out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + '\n;' + mixinCode + '\n;' + out;
                     badge('');
                 } catch (err) {
