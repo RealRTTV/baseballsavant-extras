@@ -21,14 +21,14 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
             }
 
             const { mean, stdev } = getDistributionData(stat, season);
-            const value_pretty: number = stat.value_pretty(value);
+            const valuePretty: number = stat.valuePretty(value);
             const percentile: number = zScoreToPercentile((stat.value(value) - mean) / stdev);
 
             patches.patches.push({
                 key: stat.name,
                 percentile,
                 season,
-                value: value_pretty
+                value: valuePretty
             })
         }
     }

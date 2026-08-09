@@ -7,9 +7,3 @@ export const ENABLED_SEASONS: Array<number> = [
 export const STATS: Array<CustomStat<any>> = [
     FIRST_PITCH_STRIKE,
 ];
-
-export type MessageResponse<T> = {
-    ok: boolean,
-    result?: T,
-    error?: string,
-}

@@ -8,11 +8,11 @@ export interface CustomStat<Self> {
 
     value(self: Self): number;
 
-    value_pretty(self: Self): number;
+    valuePretty(self: Self): number;
 }
 
-export function distributionData<T extends CustomStat<T>>(stat: T, by_player: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {
-    const values = Object.entries(by_player).filter(([key, _]) => qualifiedPitchers.has(Number(key))).map(([_, instance]) => stat.value(instance));
+export function distributionData<T extends CustomStat<T>>(stat: T, byPlayer: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {
+    const values = Object.entries(byPlayer).filter(([key, _]) => qualifiedPitchers.has(Number(key))).map(([_, instance]) => stat.value(instance));
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;
