@@ -9,8 +9,6 @@ import { ENABLED_SEASONS, STATS, type MessageResponse } from "@/utils/shared/sta
 export async function getStatcastData() {
     const db = await createDB();
 
-    registerMessageEvents(db);
-
     await cacheQualifiedPitchersBySeason();
 
     await cacheStatcastData(db);
@@ -43,39 +41,6 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
         upgrade(db) {
             db.createObjectStore('date');
             db.createObjectStore('stats');
-        }
-    });
-}
-
-function registerMessageEvents(db: IDBPDatabase<StatcastDB>) {
-    async function messageWrapper<T>(closure: () => Promise<T>): Promise<MessageResponse<T>> {
-        try {
-            return { ok: true, result: await closure(), error: undefined };
-        } catch (e) {
-            return { ok: false, error: String(e), result: undefined };
-        }
-    }
-
-    browser.runtime.onMessage.addListener(async (msg, _) => {
-        console.log('called');
-        switch (msg.type) {
-            case 'getStatFromDB': {
-                const statName: string = msg.stat;
-                const stat = STATS.find(entry => entry.name === statName)!;
-                const season: number = msg.season;
-                const player: number = msg.player;
-                return await messageWrapper<object>(() => getStatFromDB(stat, season, player, db));
-            }
-            case 'getDistributionData': {
-                const statName: string = msg.stat;
-                const stat = STATS.find(entry => entry.name === statName)!;
-                const season: number = msg.season;
-                return await messageWrapper<{ mean: number, stdev: number }>(async () => {
-
-                });
-            }
-            default:
-                return undefined;
         }
     });
 }

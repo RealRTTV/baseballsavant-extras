@@ -52,7 +52,7 @@ function indexBundleJsMixin() {
         (details) => {
             if (!details.url.includes('index.bundle.js')) return {};
 
-            const stream = browser.webRequest.filterResponseData(details.requestId);
+            const stream = (browser.webRequest as any).filterResponseData(details.requestId);
             const decoder = new TextDecoder('utf-8');
             let out = '';
 
