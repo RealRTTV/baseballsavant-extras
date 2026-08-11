@@ -96,7 +96,7 @@ function* seasonDates(season: number): Generator<string> {
     }
 }
 
-export async function getStatFromDB<T>(stat: CustomStat<T>, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<T | undefined> {
+export async function getStatFromDB<T extends object>(stat: CustomStat<T>, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<T | undefined> {
     const cache: StatCache<T> | undefined = await db.get('stats', [season, stat.name]);
 
     if (cache === undefined) {
@@ -109,6 +109,16 @@ export async function getStatFromDB<T>(stat: CustomStat<T>, season: number, play
 export function getDistributionData<T>(stat: CustomStat<T>, season: number): { mean: number, stdev: number } {
     const [mean, stdev] = DISTRIBUTION_METRICS[`${season}:${stat.name}`] ?? [0, 1];
     return { mean, stdev };
+}
+
+export async function getSampleNumberFromDB<T extends object>(stat: CustomStat<T>, season: number, db: IDBPDatabase<StatcastDB>): Promise<number> {
+    const cache: StatCache<T> | undefined = await db.get('stats', [season, stat.name]);
+
+    if (cache === undefined) {
+        return 0;
+    }
+
+    return Object.keys(cache.byPlayer).length;
 }
 
 async function recacheAllPlays(season: number, db: IDBPDatabase<StatcastDB>) {

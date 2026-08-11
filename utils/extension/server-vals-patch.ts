@@ -2,7 +2,7 @@ import {ENABLED_SEASONS, STATS} from "@/utils/shared/statcast.ts";
 import {clamp, zScoreToPercentile} from "@/utils/shared/math.ts";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch.ts";
 import {openDB} from "idb";
-import {getDistributionData, getStatFromDB, type StatcastDB} from "@/utils/extension/statcast.ts";
+import {getDistributionData, getSampleNumberFromDB, getStatFromDB, type StatcastDB} from "@/utils/extension/statcast.ts";
 
 export async function createServerValsPatch(playerId: number): Promise<ServerValsPatch> {
     const patches: ServerValsPatch = {
@@ -15,15 +15,12 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
 
     for (const stat of STATS) {
         for (const season of ENABLED_SEASONS) {
-            const statValue = await getStatFromDB(stat, season, playerId, db);
-
-            if (statValue === undefined) {
-                continue;
-            }
+            const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
+            const n: number = await getSampleNumberFromDB(stat, season, db);
 
             const { mean, stdev } = getDistributionData(stat, season);
-            const value: number = stat.value(statValue);
-            const percentile: number = clamp(zScoreToPercentile((value - mean) / stdev), 1, 100);
+            const value: number | null = statValue === undefined ? null : stat.value(statValue);
+            const percentile: number | null = value === null ? null : clamp(zScoreToPercentile((value - mean) / stdev), 1, 100);
 
             patches.patches.push({
                 key: stat.name,
@@ -36,7 +33,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
                 metric: stat.name,
                 avg_metric: mean,
                 stddev_metric: stdev,
-                n: 300, // todo: what is this
+                n,
                 season,
             })
         }
