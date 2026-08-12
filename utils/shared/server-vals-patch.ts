@@ -2,6 +2,7 @@ export type ServerValsPatch = {
     playerId: number,
     patches: StatPatch[],
     summaryPatches: SummaryPatch[],
+    forceDisplayPatches: ForceDisplayPatch[]
 };
 
 export type StatPatch = {
@@ -18,3 +19,7 @@ export type SummaryPatch = {
     n: number,
     season: number,
 };
+
+export type ForceDisplayPatch = {
+    metric: string,
+}

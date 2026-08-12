@@ -43,4 +43,9 @@ export function applyServerValsPatch(serverVals: ServerVals, patches: ServerVals
             n: String(summary.n),
         };
     }
+
+    const forceDisplayYear = serverVals.statcast.at(-1);
+    for (const patch of patches.forceDisplayPatches) {
+        (forceDisplayYear! as any)[patch.metric] = 0;
+    }
 }

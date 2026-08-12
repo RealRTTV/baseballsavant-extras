@@ -1,6 +1,6 @@
 import {modifyPercentileSpec, type PercentileSpec} from "@/utils/main/modify-percentile-spec";
 import {applyServerValsPatch} from "@/utils/main/server-vals-patch";
-import {STATS} from "@/utils/shared/statcast";
+import {CALCULATED_STATS} from "@/utils/shared/statcast";
 
 export default defineUnlistedScript(async () => {
     (globalThis as any).__savantExtras = {
@@ -24,7 +24,7 @@ export default defineUnlistedScript(async () => {
             degrees: string[],            //    13 -> 13°
             feetAndInches: string[]       //    13 -> 1'1"
         ) {
-            oneDP.push(...STATS.map(stat => stat.name));
+            oneDP.push(...CALCULATED_STATS.map(stat => stat.name));
         }
     };
 });
