@@ -1,2 +1,2 @@
-export * from './first-pitch-strike.ts';
-export * from './module.ts';
+export * from './first-pitch-strike';
+export * from './module';

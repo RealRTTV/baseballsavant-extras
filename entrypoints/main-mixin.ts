@@ -1,6 +1,6 @@
-import {modifyPercentileSpec, type PercentileSpec} from "@/utils/main/modify-percentile-spec.ts";
-import {applyServerValsPatch} from "@/utils/main/server-vals-patch.ts";
-import {STATS} from "@/utils/shared/statcast.ts";
+import {modifyPercentileSpec, type PercentileSpec} from "@/utils/main/modify-percentile-spec";
+import {applyServerValsPatch} from "@/utils/main/server-vals-patch";
+import {STATS} from "@/utils/shared/statcast";
 
 export default defineUnlistedScript(async () => {
     (globalThis as any).__savantExtras = {

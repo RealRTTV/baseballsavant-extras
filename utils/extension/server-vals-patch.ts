@@ -1,8 +1,8 @@
-import {ENABLED_SEASONS, STATS} from "@/utils/shared/statcast.ts";
-import {clamp, zScoreToPercentile} from "@/utils/shared/math.ts";
-import type {ServerValsPatch} from "@/utils/shared/server-vals-patch.ts";
+import {ENABLED_SEASONS, STATS} from "@/utils/shared/statcast";
+import {clamp, zScoreToPercentile} from "@/utils/shared/math";
+import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {openDB} from "idb";
-import {getDistributionData, getSampleNumberFromDB, getStatFromDB, type StatcastDB} from "@/utils/extension/statcast.ts";
+import {getDistributionData, getSampleNumberFromDB, getStatFromDB, type StatcastDB} from "@/utils/extension/statcast";
 
 export async function createServerValsPatch(playerId: number): Promise<ServerValsPatch> {
     const patches: ServerValsPatch = {

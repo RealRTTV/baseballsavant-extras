@@ -1,1 +1,2 @@
-export * from './registry.ts';
+export * from './registry';
+export * from './batter_value';

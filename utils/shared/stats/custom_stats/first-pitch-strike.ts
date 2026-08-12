@@ -1,4 +1,4 @@
-import type {CustomStat} from "@/utils/shared/stats/custom_stats/module.ts";
+import type {CustomStat} from "@/utils/shared/stats/custom_stats/module";
 
 export const FIRST_PITCH_STRIKE = {
     apply: function (rows, map) {

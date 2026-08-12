@@ -24,13 +24,13 @@ export type PercentileProperty = {
     value: string,
     /** Key to lookup in serverVals for; automatically appends '_unrounded' for that one too */
     percent_value: string,
-    /** Name used for formatting reference, falls back to `value` */
-    format_value?: string,
 
     // todo, more here
 };
 
 export function modifyPercentileSpec(percentileSpec: PercentileSpec) {
+    console.log(Object.values(percentileSpec).flatMap(e => e.props));
+
     (globalThis as any).__savantPercentileSpec = percentileSpec;
     percentileSpec.pitching.props.push({
         "label": "FPS %",

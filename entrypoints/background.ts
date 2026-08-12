@@ -1,6 +1,6 @@
-import {getStatcastData} from "@/utils/extension/statcast.ts";
-import type {ServerValsPatch} from "@/utils/shared/server-vals-patch.ts";
-import {createServerValsPatch} from "@/utils/extension/server-vals-patch.ts";
+import {getStatcastData} from "@/utils/extension/statcast";
+import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
+import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 
 const PERCENTILE_RANKINGS_SPEC = /(?:^|[\s,;{(=])([A-Za-z_$][\w$]*)\s*=\s*\{\s*batterValue\s*:\s*\{\s*props\s*:/;
 
