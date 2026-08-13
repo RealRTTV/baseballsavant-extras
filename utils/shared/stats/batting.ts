@@ -97,7 +97,7 @@ const SWEET_SPOT_RATE: PercentileProperty = {
 };
 
 const AVERAGE_HOME_RUN_DISTANCE: PercentileProperty = {
-    "label": "Avg Home Run",
+    "label": "Avg. HR Distance",
     "value": "distance_hr_avg",
     "percent_value": "percent_rank_distance_hr_avg"
 };
@@ -176,7 +176,7 @@ const BAT_SPEED_ACCELERATION: PercentileProperty = {
 };
 
 const IDEAL_ATTACK_ANGLE: PercentileProperty = {
-    "label": "Ideal Attack-Angle %",
+    "label": "Ideal Attack Angle %",
     "value": "ideal_angle_rate",
     "percent_value": "percent_rank_ideal_angle_rate"
 };

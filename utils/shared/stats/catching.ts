@@ -7,8 +7,8 @@ export const POP_TIME: PercentileProperty = {
 };
 
 // /** @todo percent_rank does not exist */
-// export const CAUGHT_STEALING_ABOVE_AVERAGE_DEPRECATED: PercentileProperty = {
-//     "label": "CS Above Avg",
+// export const CATCHER_ARM_STRENGTH: PercentileProperty = {
+//     "label": "Arm Strength 2B",
 //     "value": "arm_cs_2b",
 //     "percent_value": "percent_rank_arm_cs_2b"
 // };

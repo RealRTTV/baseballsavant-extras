@@ -1,13 +1,45 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Default Popup Title</title>
-    <meta name="manifest.type" content="browser_action" />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="./main.ts"></script>
-  </body>
+    <meta name="manifest.type" content="browser_action"/>
+</head>
+<body>
+<div id="table">
+    <div class="table-column">
+        <h2>Available Stats</h2>
+        <div class="stat-category">
+            <div class="stat-category-header">
+                <img src="https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png"
+                     height="40" width="40" alt="Value">
+                <h1 style="transform: translate(0, 2px)">Value</h1>
+            </div>
+            <hr class="stat-category-line">
+        </div>
+        <div class="stat-category">
+            <div class="stat-category-header">
+                <img src="https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png"
+                     height="40" width="40" alt="Value">
+                <h1 style="transform: translate(0, 2px)">Batting</h1>
+            </div>
+            <hr class="stat-category-line">
+        </div>
+        <div class="stat-category">
+            <div class="stat-category-header">
+                <img src="https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png"
+                     height="40" width="40" alt="Value">
+                <h1 style="transform: translate(0, 2px)">Fielding</h1>
+            </div>
+            <hr class="stat-category-line">
+        </div>
+    </div>
+    <div class="table-column">
+        <h2>Selected Percentile Rankings</h2>
+    </div>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
 </html>

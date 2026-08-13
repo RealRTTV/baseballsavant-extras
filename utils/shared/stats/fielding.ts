@@ -2,7 +2,7 @@ import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
 
 // /** @todo commonly not filled out */
 // export const OUTFIELDER_JUMP_DEPRECATED: PercentileProperty = {
-//     "label": "Outfielder Jump",
+//     "label": "Outfield Jump",
 //     "value": "jump_v_avg",
 //     "percent_value": "percent_rank_jump"
 // };
@@ -27,7 +27,7 @@ export const ARM_STRENGTH: PercentileProperty = {
 
 // /** @todo commonly not filled out */
 // export const ARM_STRENGTH_DEPRECATED: PercentileProperty = {
-//     "label": "Arm Strength (Max)",
+//     "label": "Max. Arm Strength",
 //     "value": "arm_max",
 //     "percent_value": "percent_rank_arm_max"
 // };
