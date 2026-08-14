@@ -81,8 +81,9 @@ body {
   top: -6px;
 }
 
-.stat-metric {
-  height: 22px;
+.metric {
+  margin: 0 auto;
+  height: 24px;
   color: #666;
   font-size: 12px;
   align-items: center;
@@ -90,20 +91,33 @@ body {
   flex-direction: row;
 }
 
-.stat-metric-name {
+.metric-name {
   width: 80px;
   text-align: end;
   padding-right: 5px;
   dominant-baseline: middle;
 }
 
-.stat-metric-slider {
+.metric-slider {
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 0;
+
+  height: 20px;
+  background-color: rgb(216, 33, 41);
 }
 
-.stat-metric-value {
+.metric-slider-line {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background-color: #fff;
+  opacity: 0.3;
+  transform: translate(-1px, 0);
+  z-index: 100;
+}
+
+.metric-value {
   width: 30px;
   text-align: end;
   padding-left: 5px;
