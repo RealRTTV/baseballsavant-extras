@@ -1,5 +1,5 @@
 :root {
-  font-family: Roboto, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Roboto Condensed', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -16,12 +16,16 @@
   overflow: hidden;
 }
 
+h1, h2, h3 {
+  font-weight: 400;
+  margin: 0;
+}
+
 body {
   margin: 0;
   display: flex;
-  min-width: 300px;
+  min-width: 600px;
   max-width: 2560px;
-  min-height: 100vh;
 }
 
 #table {
@@ -34,18 +38,17 @@ body {
 }
 
 .table-column {
+  flex: 1;
   padding: 20px;
   border: 1px solid #49a;
   background-color: #fff;
+  max-width: 400px;
 }
 
 .table-column h1 {
   font-size: 18px;
-  font-family: 'Roboto Condensed', sans-serif;
   color: #000;
-  font-weight: 400;
   text-align: center;
-  margin-top: 0;
   margin-bottom: 0.83em;
   white-space: nowrap;
 }
@@ -69,11 +72,40 @@ body {
 }
 
 .stat-category-line {
-  margin: 0 auto;
+  margin: 0 auto -2px;
   height: 2px;
   background-color: #49a;
   border: none;
 
   position: relative;
   top: -6px;
+}
+
+.stat-metric {
+  height: 22px;
+  color: #666;
+  font-size: 12px;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+}
+
+.stat-metric-name {
+  width: 80px;
+  text-align: end;
+  padding-right: 5px;
+  dominant-baseline: middle;
+}
+
+.stat-metric-slider {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+}
+
+.stat-metric-value {
+  width: 30px;
+  text-align: end;
+  padding-left: 5px;
+  dominant-baseline: middle;
 }
