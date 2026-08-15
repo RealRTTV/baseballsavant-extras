@@ -81,9 +81,13 @@ body {
   top: -6px;
 }
 
+.metrics {
+  margin: 0 0 0 40px;
+}
+
 .metric {
-  margin: 0 auto;
-  height: 24px;
+  margin: 2px auto;
+  height: 20px;
   color: #666;
   font-size: 12px;
   align-items: center;
@@ -99,6 +103,7 @@ body {
 }
 
 .metric-slider {
+  position: relative;
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 0;
@@ -110,11 +115,10 @@ body {
 .metric-slider-line {
   position: absolute;
   width: 2px;
-  height: 20px;
+  height: 100%;
   background-color: #fff;
   opacity: 0.3;
   transform: translate(-1px, 0);
-  z-index: 100;
 }
 
 .metric-value {
