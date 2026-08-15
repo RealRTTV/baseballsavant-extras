@@ -102,14 +102,35 @@ body {
   dominant-baseline: middle;
 }
 
-.metric-slider {
+.metric-slider-slot {
   position: relative;
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 0;
 
   height: 20px;
+}
+
+.metric-slider-back {
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  top: 50%;
+  transform: translate(0, -2.5px);
+  background-color: rgb(199, 220, 220);
+}
+
+.metric-slider {
+  position: absolute;
+  width: 10%;
+  height: 100%;
+  background-color: rgb(70, 107, 177);
+  transition: width 0.4s ease-in-out, background-color 0.4s ease-in-out;
+}
+
+.metric-slider:hover {
   background-color: rgb(216, 33, 41);
+  width: 100%;
 }
 
 .metric-slider-line {
@@ -119,6 +140,8 @@ body {
   background-color: #fff;
   opacity: 0.3;
   transform: translate(-1px, 0);
+
+  pointer-events: none;
 }
 
 .metric-value {
