@@ -1,6 +1,7 @@
-import {modifyPercentileSpec, type PercentileSpec} from "@/utils/main/modify-percentile-spec";
+import {modifyPercentileSpec} from "@/utils/main/modify-percentile-spec";
 import {applyServerValsPatch} from "@/utils/main/server-vals-patch";
 import {CALCULATED_STATS} from "@/utils/shared/statcast";
+import {DisplayType, type PercentileSpec} from "@/utils/shared/stats";
 
 export default defineUnlistedScript(async () => {
     (globalThis as any).__savantExtras = {
@@ -24,7 +25,21 @@ export default defineUnlistedScript(async () => {
             degrees: string[],            //    13 -> 13°
             feetAndInches: string[]       //    13 -> 1'1"
         ) {
-            oneDP.push(...CALCULATED_STATS.map(stat => stat.name));
+            for (const stat of CALCULATED_STATS) {
+                const list: string[] = {
+                    [DisplayType.ThreeDecimalPlaceNoIntegerPortion]: threeDPNoInt,
+                    [DisplayType.ThreeDecimalPlace]: threeDP,
+                    [DisplayType.TwoDecimalPlace]: twoDP,
+                    [DisplayType.OneDecimalPlace]: oneDP,
+                    [DisplayType.ZeroDecimalPlace]: zeroDP,
+                    [DisplayType.WithPercentOneDecimalPlace]: withPercentOneDP,
+                    [DisplayType.WithPercentZeroDecimalPlaces]: withPercentZeroDP,
+                    [DisplayType.Degrees]: degrees,
+                    [DisplayType.FeetAndInches]: feetAndInches,
+                }[stat.property.display_type] ?? [];
+
+                list.push(stat.property.value);
+            }
         }
     };
 });

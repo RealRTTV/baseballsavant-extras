@@ -1,5 +1,5 @@
 import type {CustomStat} from "@/utils/shared/stats/custom_stats/module";
-import {DisplayType, type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec.ts";
+import {DisplayType, type ExtendedPercentileProperty} from "@/utils/shared/stats";
 
 export const FIRST_PITCH_STRIKE: ExtendedPercentileProperty = {
     label: "FPS %",
