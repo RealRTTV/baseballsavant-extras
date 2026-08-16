@@ -3,7 +3,6 @@ import {clamp, zScoreToPercentile} from "@/utils/shared/math";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {openDB} from "idb";
 import {
-    getDistributionData,
     getDistributionDataOrDefault,
     getSampleNumberFromDB,
     getStatFromDB,
@@ -27,7 +26,8 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
 
             const { mean, stdev } = getDistributionDataOrDefault(stat.property, season);
             const value: number | null = statValue === undefined ? null : stat.value(statValue);
-            const percentile: number | null = value === null ? null : clamp(zScoreToPercentile((value - mean) / stdev), 1, 100);
+            const zScore: number | null = value == null ? null : stat.property.invert === true ? (mean - value / stdev) : (value - mean) / stdev;
+            const percentile: number | null = zScore === null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
 
             patches.patches.push({
                 key: stat.property.value,

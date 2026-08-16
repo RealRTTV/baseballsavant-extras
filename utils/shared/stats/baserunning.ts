@@ -1,4 +1,4 @@
-import {type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec";
+import type {ExtendedPercentileProperty} from "@/utils/shared/stats/module.ts";
 
 export const SPRINT_SPEED: ExtendedPercentileProperty = {
     label: "Sprint Speed",

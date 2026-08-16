@@ -1,4 +1,4 @@
-import {type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec";
+import type {ExtendedPercentileProperty} from "@/utils/shared/stats/module.ts";
 
 export const EXPECTED_WEIGHTED_ON_BASE_AVERAGE: ExtendedPercentileProperty = {
     label: "xwOBA",

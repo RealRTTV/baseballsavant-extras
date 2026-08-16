@@ -1,4 +1,4 @@
-import {type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec";
+import type {ExtendedPercentileProperty} from "@/utils/shared/stats/module.ts";
 
 /** same name as batting run value, same sample, although the values on the pitcher side are inverted */
 export const PITCHING_RUN_VALUE: ExtendedPercentileProperty = {

@@ -1,4 +1,4 @@
-import {type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec";
+import type {ExtendedPercentileProperty} from "@/utils/shared/stats/module.ts";
 
 export const POP_TIME: ExtendedPercentileProperty = {
     label: "Pop Time",
@@ -6,7 +6,7 @@ export const POP_TIME: ExtendedPercentileProperty = {
     percent_value: "percent_rank_pop_2b"
 };
 
-// /** @todo percent_rank does not exist */
+// /** percent_rank does not exist */
 // export const CATCHER_ARM_STRENGTH: ExtendedPercentileProperty = {
 //     label: "Arm Strength 2B",
 //     value: "arm_cs_2b",

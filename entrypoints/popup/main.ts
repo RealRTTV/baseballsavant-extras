@@ -1,15 +1,27 @@
 import './style.css';
 
 import {ALL_STATS_SPEC} from "@/utils/shared/stats/registry.ts";
-import {clamp} from "@/utils/shared/math.ts";
+import {clamp, percentileToZScore} from "@/utils/shared/math.ts";
 import {
+    formatDisplayType,
+    isExtendedPercentileProperty,
     type PercentileCategory,
     type PercentileProperty,
-    percentilePropertyValue,
     type PercentileSpec
 } from "@/utils/shared/stats";
+import {getDistributionDataOrDefault} from "@/utils/extension/statcast.ts";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
+
+function percentilePropertyValue(property: PercentileProperty, percentile: number): string {
+    if (!isExtendedPercentileProperty(property)) {
+        return '--';
+    }
+
+    const zScore = percentileToZScore(property.invert === true ? 100 - percentile : percentile);
+    const { mean, stdev } = getDistributionDataOrDefault(property, new Date().getFullYear());
+    return formatDisplayType(mean + zScore * stdev, property.display_type);
+}
 
 function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number, color: string): string {
     return `
@@ -43,7 +55,7 @@ function generatePercentileCategory(category: PercentileCategory): string {
         <text font-size="16" x="40" y="28" font-weight="bold">${category.title}</text>
     </svg>
     <div class="pct-metrics">
-    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, 96, 'rgb(216, 33, 41)')).join('')}
+    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, 1, 'rgb(216, 33, 41)')).join('')}
     </div>
     `;
 }
@@ -52,6 +64,4 @@ function generatePercentileSpec(spec: PercentileSpec): string {
     return Object.values(spec).map(generatePercentileCategory).join('');
 }
 
-console.log(AVAILABLE_PERCENTILE_RANKINGS.innerHTML = generatePercentileSpec(ALL_STATS_SPEC));
-
-console.log(document.body);
+AVAILABLE_PERCENTILE_RANKINGS.innerHTML = generatePercentileSpec(ALL_STATS_SPEC);

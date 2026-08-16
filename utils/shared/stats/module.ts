@@ -1,6 +1,3 @@
-import {percentileToZScore} from "@/utils/shared/math.ts";
-import {getDistributionData, getDistributionDataOrDefault} from "@/utils/extension/statcast.ts";
-
 export type PercentileSpec = {
     batterValue: PercentileCategory,
     batting: PercentileCategory,
@@ -79,7 +76,7 @@ export function formatDisplayType(value: number, display: DisplayType) {
 export function isPercentileProperty(property: any): property is PercentileProperty {
     return typeof property.label === 'string' &&
         typeof property.value === 'string' &&
-        typeof property.percentile_value === 'string';
+        typeof property.percent_value === 'string';
 }
 
 export function isExtendedPercentileProperty(property: PercentileProperty): property is ExtendedPercentileProperty {
@@ -87,14 +84,4 @@ export function isExtendedPercentileProperty(property: PercentileProperty): prop
         typeof (property as any).approx_mean === 'number' &&
         typeof (property as any).approx_stdev === 'number' &&
         typeof (property as any).display_type === 'number';
-}
-
-export function percentilePropertyValue(property: PercentileProperty, percentile: number): string {
-    if (!isExtendedPercentileProperty(property)) {
-        return '--';
-    }
-
-    const zScore = percentileToZScore(percentile);
-    const { mean, stdev } = getDistributionDataOrDefault(property, percentile);
-    return formatDisplayType(mean + zScore * stdev, property.display_type);
 }

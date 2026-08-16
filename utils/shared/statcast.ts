@@ -1,3 +1,4 @@
+import "@/utils/shared/stats";
 import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
 
 export const ENABLED_SEASONS: Array<number> = [

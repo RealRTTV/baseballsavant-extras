@@ -1,6 +1,6 @@
-import {type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec";
+import type {ExtendedPercentileProperty} from "@/utils/shared/stats/module.ts";
 
-// /** @todo commonly not filled out */
+// /** commonly not filled out */
 // export const OUTFIELDER_JUMP_DEPRECATED: ExtendedPercentileProperty = {
 //     label: "Outfield Jump",
 //     value: "jump_v_avg",
@@ -25,7 +25,7 @@ export const ARM_STRENGTH: ExtendedPercentileProperty = {
     percent_value: "percent_rank_arm_overall"
 };
 
-// /** @todo commonly not filled out */
+// /** commonly not filled out */
 // export const ARM_STRENGTH_DEPRECATED: ExtendedPercentileProperty = {
 //     label: "Max. Arm Strength",
 //     value: "arm_max",
