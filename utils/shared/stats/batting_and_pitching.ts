@@ -1,4 +1,4 @@
-import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
+import {type PercentileProperty} from "@/utils/main/modify-percentile-spec";
 
 export const EXPECTED_WEIGHTED_ON_BASE_AVERAGE: PercentileProperty = {
     "label": "xwOBA",

@@ -1,71 +1,62 @@
-import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
-import {BASERUNNING_RUN_VALUE, BATTING_RUN_VALUE, FIELDING_RUN_VALUE} from "./batter_value";
-import {EXPECTED_WEIGHTED_ON_BASE_AVERAGE, EXPECTED_BATTING_AVERAGE, BARRELS, BARREL_RATE, AVERAGE_EXIT_VELO, MAX_EXIT_VELO, WHIFF_RATE, CHASE_RATE, HARD_HIT_RATE, GROUNDBALL_RATE, STRIKEOUT_RATE, WALK_RATE} from "./batting_and_pitching";
-import {PITCHING_RUN_VALUE, BREAKING_RUN_VALUE, FASTBALL_RUN_VALUE, OFFSPEED_RUN_VALUE} from "@/utils/shared/stats/pitcher_value";
-import {CURVEBALL_SPIN, EXPECTED_ERA, EXTENSION, FASTBALL_SPIN, FASTBALL_VELO} from "@/utils/shared/stats/pitching";
-import {
-    BLOCKS_ABOVE_AVERAGE,
-    CAUGHT_STEALING_ABOVE_AVERAGE,
-    FRAMING,
-    FRAMING_OLD,
-    POP_TIME
-} from "@/utils/shared/stats/catching";
-import {ARM_STRENGTH, ARM_VALUE, OUTS_ABOVE_AVERAGE} from "@/utils/shared/stats/fielding";
-import {EXTRA_BASE_RUN_VALUE, SPRINT_SPEED, STOLEN_BASE_RUN_VALUE} from "@/utils/shared/stats/baserunning";
+import {type PercentileProperty, type PercentileSpec} from "@/utils/main/modify-percentile-spec";
+import * as BATTING_VALUE from "./batting_value";
+import * as BATTING_AND_PITCHING from "./batting_and_pitching";
+import * as PITCHING_VALUE from "./pitcher_value";
+import * as PITCHING_ONLY from "./pitching";
+import * as CATCHING from "./catching";
+import * as FIELDING from "./fielding";
+import * as BASERUNNING from "./baserunning";
+import * as BATTING_ONLY from "./batting";
 
-export const BATTER_VALUE_PROPERTIES: PercentileProperty[] = [
-    BATTING_RUN_VALUE,
-    FIELDING_RUN_VALUE,
-    BASERUNNING_RUN_VALUE,
-]
+const BATTER_VALUE_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_VALUE)]
+const BATTING_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_AND_PITCHING), ...Object.values(BATTING_ONLY)]
+const PITCHING_VALUE_PROPERTIES: PercentileProperty[] = [...Object.values(PITCHING_VALUE)]
+const PITCHING_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_AND_PITCHING), ...Object.values(PITCHING_ONLY)]
+const CATCHING_PROPERTIES: PercentileProperty[] = [...Object.values(CATCHING)]
+const FIELDING_PROPERTIES: PercentileProperty[] = [...Object.values(FIELDING)]
+const BASERUNNING_PROPERTIES: PercentileProperty[] = [...Object.values(BASERUNNING)]
 
-const BATTING_AND_PITCHING_PROPERTIES: PercentileProperty[] = [
-    EXPECTED_WEIGHTED_ON_BASE_AVERAGE,
-    EXPECTED_BATTING_AVERAGE,
-    BARRELS,
-    BARREL_RATE,
-    AVERAGE_EXIT_VELO,
-    MAX_EXIT_VELO,
-    HARD_HIT_RATE,
-    WHIFF_RATE,
-    CHASE_RATE,
-    STRIKEOUT_RATE,
-    WALK_RATE,
-    GROUNDBALL_RATE,
-]
-
-export const PITCHER_VALUE_PROPERTIES: PercentileProperty[] = [
-    PITCHING_RUN_VALUE,
-    FASTBALL_RUN_VALUE,
-    BREAKING_RUN_VALUE,
-    OFFSPEED_RUN_VALUE,
-]
-
-export const PITCHING_PROPERTIES: PercentileProperty[] = [
-    FASTBALL_VELO,
-    FASTBALL_SPIN,
-    EXTENSION,
-    CURVEBALL_SPIN,
-    EXPECTED_ERA,
-    ...BATTING_AND_PITCHING_PROPERTIES,
-]
-
-export const CATCHING_PROPERTIES: PercentileProperty[] = [
-    BLOCKS_ABOVE_AVERAGE,
-    CAUGHT_STEALING_ABOVE_AVERAGE,
-    FRAMING,
-    FRAMING_OLD,
-    POP_TIME,
-]
-
-export const FIELDING_PROPERTIES: PercentileProperty[] = [
-    OUTS_ABOVE_AVERAGE,
-    ARM_VALUE,
-    ARM_STRENGTH,
-]
-
-export const BASERUNNING_PROPERTIES: PercentileProperty[] = [
-    SPRINT_SPEED,
-    EXTRA_BASE_RUN_VALUE,
-    STOLEN_BASE_RUN_VALUE,
-]
+export const ALL_STATS_SPEC: PercentileSpec = {
+    batterValue: {
+        title: "Batter Value",
+        props: BATTER_VALUE_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+        altImage: "Batter Value",
+    },
+    batting: {
+        title: "Batting",
+        props: BATTING_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
+        altImage: "Batter",
+    },
+    catching: {
+        title: "Catching",
+        props: CATCHING_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
+        altImage: "Catcher",
+    },
+    fielding: {
+        title: "Fielding",
+        props: FIELDING_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
+        altImage: "Fielder",
+    },
+    running: {
+        title: "Running",
+        props: BASERUNNING_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
+        altImage: "Running",
+    },
+    pitcherValue: {
+        title: "Pitcher Value",
+        props: PITCHING_VALUE_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+        altImage: "Pitcher Value",
+    },
+    pitching: {
+        title: "Pitching",
+        props: PITCHING_PROPERTIES,
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
+        altImage: "Pitching",
+    }
+};

@@ -5,9 +5,9 @@ export type PercentileSpec = {
     batting: PercentileCategory,
     catching: PercentileCategory,
     fielding: PercentileCategory,
+    running: PercentileCategory,
     pitcherValue: PercentileCategory,
     pitching: PercentileCategory,
-    running: PercentileCategory,
 };
 
 export type PercentileCategory = {

@@ -1,4 +1,4 @@
-import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
+import {type PercentileProperty} from "@/utils/main/modify-percentile-spec";
 
 /** same name as batting run value, same sample, although the values on the pitcher side are inverted */
 export const PITCHING_RUN_VALUE: PercentileProperty = {

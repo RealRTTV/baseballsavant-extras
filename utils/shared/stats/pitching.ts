@@ -1,4 +1,4 @@
-import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
+import {type PercentileProperty} from "@/utils/main/modify-percentile-spec";
 
 export const FASTBALL_VELO: PercentileProperty = {
     "label": "Fastball Velo",

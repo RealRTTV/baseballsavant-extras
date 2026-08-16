@@ -1,4 +1,4 @@
-import {PercentileProperty} from "@/utils/main/modify-percentile-spec";
+import {type PercentileProperty} from "@/utils/main/modify-percentile-spec";
 
 // /** @todo commonly not filled out */
 // export const OUTFIELDER_JUMP_DEPRECATED: PercentileProperty = {

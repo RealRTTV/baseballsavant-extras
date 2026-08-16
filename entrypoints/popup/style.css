@@ -38,8 +38,12 @@ svg {
   border: 1px solid #49a;
   background-color: #fff;
   max-width: 400px;
+  max-height: 400px;
   display: flex;
   flex-direction: column;
+
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .table-column-title {
@@ -52,9 +56,10 @@ svg {
 
 .pct-rankings {
   flex: 1;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 0 20px 20px 22px;
 }
+
+#available-pct-rankings {}
 
 .pct-group-title {
   box-sizing: border-box;
@@ -64,10 +69,10 @@ svg {
 
 .pct-metrics {
   box-sizing: border-box;
-  padding: 0 0 22px 40px;
+  padding: 0 0 0 40px;
 }
 
 .pct-metric {
   height: 20px;
-  padding: 0 0 2.5px 0;
+  padding: 0 0 3px 0;
 }
