@@ -1,40 +1,9 @@
-import {FIRST_PITCH_STRIKE} from "@/utils/shared/stats/custom_stats";
-
-export type PercentileSpec = {
-    batterValue: PercentileCategory,
-    batting: PercentileCategory,
-    catching: PercentileCategory,
-    fielding: PercentileCategory,
-    running: PercentileCategory,
-    pitcherValue: PercentileCategory,
-    pitching: PercentileCategory,
-};
-
-export type PercentileCategory = {
-    title: string,
-    props: PercentileProperty[],
-    image: string,
-    altImage: string,
-};
-
-export type PercentileProperty = {
-    /** Display Name */
-    label: string,
-    /** Key to lookup in serverVals for */
-    value: string,
-    /** Key to lookup in serverVals for; automatically appends '_unrounded' for that one too */
-    percent_value: string,
-
-    // todo, more here
-};
+import {FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
+import type {PercentileSpec} from "@/utils/shared/stats/module.ts";
 
 export function modifyPercentileSpec(percentileSpec: PercentileSpec) {
     console.log(Object.values(percentileSpec).flatMap(e => e.props));
 
     (globalThis as any).__savantPercentileSpec = percentileSpec;
-    percentileSpec.pitching.props.push({
-        "label": "FPS %",
-        "value": FIRST_PITCH_STRIKE.name,
-        "percent_value": `percent_rank_${FIRST_PITCH_STRIKE.name}`,
-    });
+    percentileSpec.pitching.props.push(FIRST_PITCH_STRIKE_CODE.property);
 }

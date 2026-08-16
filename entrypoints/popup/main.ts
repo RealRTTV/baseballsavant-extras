@@ -1,11 +1,17 @@
 import './style.css';
 
 import {ALL_STATS_SPEC} from "@/utils/shared/stats/registry.ts";
-import type {PercentileCategory, PercentileProperty, PercentileSpec} from "@/utils/main/modify-percentile-spec.ts";
+import {clamp} from "@/utils/shared/math.ts";
+import {
+    type PercentileCategory,
+    type PercentileProperty,
+    percentilePropertyValue,
+    type PercentileSpec
+} from "@/utils/shared/stats";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
 
-function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, value: string, percentile: number, color: string): string {
+function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number, color: string): string {
     return `
         <svg class="pct-metric">
             <g transform="translate(85, 0)">
@@ -16,10 +22,10 @@ function generatePercentileMetric(property: PercentileProperty, ordinal: number 
                 <rect width="2" height="20" opacity="0.3" style="x: calc((100% - 85px - 35px) - 12px - 1px)" fill="#fff"/>
             </g>
             <text dominant-baseline="middle" text-anchor="end" x="80" y="10" font-size="12" fill="#666">${property.label}</text>
-            <text dominant-baseline="middle" text-anchor="end" x="100%" y="10" font-size="12" fill="#666">${value}</text>
+            <text dominant-baseline="middle" text-anchor="end" x="100%" y="10" font-size="12" fill="#666">${percentilePropertyValue(property, percentile)}</text>
             <g style="transform: translate(calc(85px + ${percentile / 100.0} * (100% - 85px - 35px - 12px) + 12px), 10px)">
                 <circle r="10" fill="${color}" stroke="#fff" stroke-width="2"/>
-                <text dominant-baseline="middle" text-anchor="middle" fill="#fff" y="1" font-size="12" font-weight="bold">${Math.round(percentile)}</text>
+                <text dominant-baseline="middle" text-anchor="middle" fill="#fff" y="1" font-size="12" font-weight="bold">${clamp(Math.floor(percentile + 0.5), 1, 100)}</text>
             </g>
             ${ordinal === 0 ? '' : `
             <path d="M80,-1.5L0,-1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1"/>
@@ -37,7 +43,7 @@ function generatePercentileCategory(category: PercentileCategory): string {
         <text font-size="16" x="40" y="28" font-weight="bold">${category.title}</text>
     </svg>
     <div class="pct-metrics">
-    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, '.400', 96, 'rgb(216, 33, 41)')).join('')}
+    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, 96, 'rgb(216, 33, 41)')).join('')}
     </div>
     `;
 }

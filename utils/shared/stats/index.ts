@@ -6,3 +6,4 @@ export * from './pitching';
 export * from './catching';
 export * from './fielding';
 export * from './baserunning';
+export * from './module';

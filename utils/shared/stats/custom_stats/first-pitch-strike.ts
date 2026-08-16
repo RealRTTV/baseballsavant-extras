@@ -1,6 +1,17 @@
 import type {CustomStat} from "@/utils/shared/stats/custom_stats/module";
+import {DisplayType, type ExtendedPercentileProperty} from "@/utils/main/modify-percentile-spec.ts";
 
-export const FIRST_PITCH_STRIKE = {
+export const FIRST_PITCH_STRIKE: ExtendedPercentileProperty = {
+    label: "FPS %",
+    value: "first_pitch_strike",
+    percent_value: "percent_rank_first_pitch_strike",
+
+    approx_mean: 61.5,
+    approx_stdev: 3.5,
+    display_type: DisplayType.OneDecimalPlace,
+};
+
+export const FIRST_PITCH_STRIKE_CODE = {
     apply: function (rows, map) {
         for (const row of rows) {
             if (row.strikes === 0 && row.balls === 0) {
@@ -12,5 +23,5 @@ export const FIRST_PITCH_STRIKE = {
         }
     },
     value: (self): number => 100.0 * self.n / self.t,
-    name: "first_pitch_strike",
+    property: FIRST_PITCH_STRIKE,
 } satisfies CustomStat<{ n: number, t: number }>;

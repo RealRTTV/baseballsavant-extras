@@ -3,6 +3,10 @@ export function zScoreToPercentile(z: number): number {
     return 100.0 * cdf;
 }
 
+export function percentileToZScore(percentile: number): number {
+    return percentile;
+}
+
 /** Abramowitz & Stegun Approximation */
 export function erf(x: number): number {
     const a1 =  0.254829592;

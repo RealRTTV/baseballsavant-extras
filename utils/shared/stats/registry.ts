@@ -1,4 +1,4 @@
-import {type PercentileProperty, type PercentileSpec} from "@/utils/main/modify-percentile-spec";
+import {type PercentileProperty, type PercentileSpec} from "@/utils/shared/stats";
 import * as BATTING_VALUE from "./batting_value";
 import * as BATTING_AND_PITCHING from "./batting_and_pitching";
 import * as PITCHING_VALUE from "./pitcher_value";
