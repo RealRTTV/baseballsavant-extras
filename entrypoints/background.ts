@@ -2,13 +2,25 @@ import {getStatcastData} from "@/utils/extension/statcast";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 
+const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
+
+function isCorrectJSFile(contents: string): boolean {
+    for (const contain of MUST_CONTAIN) {
+        if (!contain.includes(contain)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 const PERCENTILE_RANKINGS_SPEC = /(?:^|[\s,;{(=])([A-Za-z_$][\w$]*)\s*=\s*\{\s*batterValue\s*:\s*\{\s*props\s*:/;
 
 function patchPercentileRankingsSpec(src: string): string {
     const match = src.match(PERCENTILE_RANKINGS_SPEC);
 
     if (match === null || match[1] === undefined) {
-        throw new Error(`anchor missed: PERCENTILE_RANKINGS_SPEC=${!!PERCENTILE_RANKINGS_SPEC} not found.`);
+        throw new Error(`anchor missed: PERCENTILE_RANKINGS_SPEC=${PERCENTILE_RANKINGS_SPEC} not found.`);
     }
 
     const varName = match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -34,7 +46,7 @@ function patchStatFormatting(src: string): string {
         { name: "feetAndInches", firstEntry: "height_in_inches" },
     ];
 
-    const REGEX_FOR_ANCHOR = (firstEntry: string) => new RegExp(`([A-Za-z_$][\\w$]*)\\s*=\\s*\\[['"]${firstEntry}\\s*['"],?`);
+    const REGEX_FOR_ANCHOR = (firstEntry: string) => new RegExp(`([A-Za-z_$][\\w$]*)\\s*=\\s*\\[?['"\`]${firstEntry}\\s*['"\`\.],?`);
 
     let anchors = ANCHORS.map(({ name, firstEntry }) => ({ name, firstEntry, regex: REGEX_FOR_ANCHOR(firstEntry) }));
 
@@ -50,7 +62,7 @@ function patchStatFormatting(src: string): string {
         }
     }
 
-    const replacement = /,(\w+)\s*=\s*{\s*placeholder:\s*['"]--['"]/;
+    const replacement = /,(\w+)\s*=\s*{\s*placeholder:\s*['"`]--['"`]/;
 
     if (!replacement.test(src)) {
         throw new Error(`stat formatting anchor missed`);
@@ -60,16 +72,16 @@ function patchStatFormatting(src: string): string {
 }
 
 export default defineBackground(() => {
-    indexBundleJsMixin();
+    indexJsMixin();
     getStatcastData().then(_ => {});
 });
 
 const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
 
-function indexBundleJsMixin() {
+function indexJsMixin() {
     browser.webRequest.onBeforeRequest.addListener(
         (details) => {
-            if (!details.url.includes('index.bundle.js')) return {};
+            if (!details.url.includes('.js')) return {};
 
             const stream = (browser.webRequest as any).filterResponseData(details.requestId);
             const decoder = new TextDecoder('utf-8');
@@ -79,19 +91,23 @@ function indexBundleJsMixin() {
             stream.onstop = async () => {
                 out += decoder.decode();
                 try {
-                    let mixinCode: string | undefined = await fetch(browser.runtime.getURL('/main-mixin.js')).then(r => r.text());
+                    if (isCorrectJSFile(out)) {
+                        let mixinCode: string | undefined = await fetch(browser.runtime.getURL('/main-mixin.js')).then(r => r.text());
 
-                    if (!mixinCode) {
-                        throw new Error('mixinCode not loaded');
+                        if (!mixinCode) {
+                            throw new Error('mixinCode not loaded');
+                        }
+
+                        const playerId: number = Number(((details as any).originUrl as string | undefined)?.match(PLAYER_ID_REGEX)?.[1]);
+                        const patch: ServerValsPatch = await createServerValsPatch(playerId);
+
+                        out = patchPercentileRankingsSpec(out);
+                        console.log('Applied Percentile Rankings Patch Successfully!');
+                        out = patchStatFormatting(out);
+                        console.log('Applied Stat Formatting Patch Successfully!');
+                        out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + '\n;' + mixinCode + '\n;' + out;
+                        badge('');
                     }
-
-                    const playerId: number = Number(((details as any).originUrl as string | undefined)?.match(PLAYER_ID_REGEX)?.[1]);
-                    const patch: ServerValsPatch = await createServerValsPatch(playerId);
-
-                    out = patchPercentileRankingsSpec(out);
-                    out = patchStatFormatting(out);
-                    out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + '\n;' + mixinCode + '\n;' + out;
-                    badge('');
                 } catch (err) {
                     console.error('[baseballsavant-extras]', err);
                     badge('!');
