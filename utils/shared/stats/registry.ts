@@ -21,7 +21,7 @@ export const ALL_STATS_SPEC: PercentileSpec = {
         title: "Batter Value",
         props: BATTER_VALUE_PROPERTIES,
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
-        altImage: "Batter Value",
+        altImage: "Trophy",
     },
     batting: {
         title: "Batting",
@@ -51,7 +51,7 @@ export const ALL_STATS_SPEC: PercentileSpec = {
         title: "Pitcher Value",
         props: PITCHING_VALUE_PROPERTIES,
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
-        altImage: "Pitcher Value",
+        altImage: "Trophy",
     },
     pitching: {
         title: "Pitching",

@@ -65,7 +65,7 @@ export function colorForPercentile(percentile: number): string {
 
     // last index such that RANGES[idx] <= percentile
     let idxLE = 0;
-    while (idxLE < RANGES.length && RANGES[idxLE]! > percentile) {
+    while (idxLE + 1 < RANGES.length && RANGES[idxLE + 1]! <= percentile) {
         idxLE++;
     }
 
