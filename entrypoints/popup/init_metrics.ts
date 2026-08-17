@@ -12,12 +12,13 @@ import {percentilePropertyValue} from "@/entrypoints/popup/module.ts";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
 
-function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): Node {
+function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): Element {
     const color = colorForPercentile(percentile);
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'pct-metric');
     svg.innerHTML = `
+        <rect class="hover-rect" width="100%" height="100%" rx="8" fill="lightblue" opacity="0"/>
         <g transform="translate(125, 0)">
             <rect style="width: calc(100% - 125px - 35px)" height="5" fill="#c7dcdc" y="7.5"/>
             <rect class="background-rect" style="width: calc(${percentile / 100.0} * (100% - 125px - 35px - 10px) + 10px)" height="20" fill="${color}" y="0"/>
@@ -42,7 +43,7 @@ function generatePercentileMetric(property: PercentileProperty, ordinal: number 
     return svg;
 }
 
-function generatePercentileCategory(category: PercentileCategory): Node[] {
+function generatePercentileCategory(category: PercentileCategory): Element[] {
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     title.setAttribute('class', 'pct-group-title');
     title.innerHTML = `
@@ -58,8 +59,23 @@ function generatePercentileCategory(category: PercentileCategory): Node[] {
     return [title, metrics];
 }
 
-function generatePercentileSpec(spec: PercentileSpec): Node[] {
+function generatePercentileSpec(spec: PercentileSpec): Element[] {
     return Object.values(spec).flatMap(generatePercentileCategory);
 }
 
+function postProcessMetrics() {
+    const metrics = Array.from(document.querySelectorAll('.pct-metric').values());
+
+    for (const metric of metrics) {
+        const text = metric.querySelector('.label-text')!;
+        const hoverRect = metric.querySelector('.hover-rect')!;
+        const metricBounds = metric.getBoundingClientRect();
+        const textBounds = text.getBoundingClientRect();
+        const leftEdge = 120 - textBounds.width - 4;
+        hoverRect.setAttribute('x', `${leftEdge}`);
+        hoverRect.setAttribute('width', `${metricBounds.width - leftEdge + 4}`);
+    }
+}
+
 AVAILABLE_PERCENTILE_RANKINGS.append(...generatePercentileSpec(ALL_STATS_SPEC));
+postProcessMetrics();

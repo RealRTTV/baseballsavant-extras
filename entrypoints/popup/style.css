@@ -35,7 +35,6 @@ svg {
 .table-column {
   flex: 1;
   border: 1px solid #49a;
-  background-color: #fff;
   max-width: 400px;
   max-height: 400px;
   display: flex;
@@ -74,6 +73,7 @@ svg {
   height: 20px;
   overflow: visible;
   padding: 0 0 3px 0;
+  pointer-events: none;
 }
 
 .background-rect {}
@@ -83,3 +83,13 @@ svg {
 .label-text {}
 
 .value-text {}
+
+.hover-rect {
+  pointer-events: all;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.hover-rect:hover {
+  opacity: 0.3;
+}
