@@ -17,14 +17,14 @@ function setMetricToPercentile(metric: Element, percentile: number) {
         x: circleBounds.x + circleBounds.width / 2,
         y: circleBounds.y + circleBounds.height / 2
     };
-    const targetX = 85 + percentile * (metricBounds.width - 85 - 35 - 10) + 10;
+    const targetX = 125 + percentile * (metricBounds.width - 125 - 35 - 10) + 10;
 
     const targetColor = colorForPercentile(percentile * 100.0);
     circleBulb.style.transform = `translate(${targetX}px, ${circleCenter.y - metricBounds.y}px)`;
     circleBulbCircle.setAttribute('fill', targetColor);
     circleBulbText.textContent = `${clamp(Math.round(percentile * 100.0), 1, 100)}`;
     circleBulbText.setAttribute('font-size', `${clamp(16 - circleBulbText.textContent.length * 2, 6, 12)}`);
-    backgroundRect.setAttribute('style', `width: ${percentile * (metricBounds.width - 85 - 35 - 10) + 10}px`);
+    backgroundRect.setAttribute('style', `width: ${percentile * (metricBounds.width - 125 - 35 - 10) + 10}px`);
     backgroundRect.setAttribute('fill', targetColor);
     valueText.textContent = percentilePropertyValue(property, percentile * 100.0);
 }
@@ -33,7 +33,7 @@ function tickMetric(metric: Element, dt: number, mouse: { x: number; y: number }
     const metricBounds = metric.getBoundingClientRect();
 
     const initialTagetX = mouse.x - metricBounds.x;
-    const targetPercentile = clamp((initialTagetX - 85 - 10) / (metricBounds.width - 85 - 35 - 10), 0, 1);
+    const targetPercentile = clamp((initialTagetX - 125 - 10) / (metricBounds.width - 125 - 35 - 10), 0, 1);
     setMetricToPercentile(metric, targetPercentile);
 }
 

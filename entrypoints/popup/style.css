@@ -21,7 +21,6 @@ svg {
   width: 100%;
   height: auto;
   display: block;
-  overflow: visible;
 }
 
 #table {
@@ -69,11 +68,11 @@ svg {
 
 .pct-metrics {
   box-sizing: border-box;
-  padding: 0 0 0 40px;
 }
 
 .pct-metric {
   height: 20px;
+  overflow: visible;
   padding: 0 0 3px 0;
 }
 
