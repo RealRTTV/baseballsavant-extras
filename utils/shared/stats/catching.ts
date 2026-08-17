@@ -26,8 +26,8 @@ export const FRAMING: ExtendedPercentileProperty = {
 };
 
 /** does not take into account RE24 matrix */
-export const FRAMING_OLD: ExtendedPercentileProperty = {
-    label: "Framing (Old)",
+export const FRAMING_UNWEIGHTED: ExtendedPercentileProperty = {
+    label: "Framing (Unweighted)",
     value: "framing",
     percent_value: "percent_rank_framing"
 };

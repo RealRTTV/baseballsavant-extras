@@ -59,5 +59,12 @@ export function inverseCDF(p: number): number {
 }
 
 export function clamp(x: number, min: number, max: number): number {
+    if (!isFinite(x)) {
+        return min;
+    }
     return Math.max(min, Math.min(max, x))
+}
+
+export function lerp(a: number, b: number, delta: number): number {
+    return a + (b - a) * delta;
 }

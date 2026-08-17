@@ -10,6 +10,7 @@ import {
     type PercentileSpec
 } from "@/utils/shared/stats";
 import {getDistributionDataOrDefault} from "@/utils/extension/statcast.ts";
+import {colorForPercentile} from "@/utils/shared/colors.ts";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
 
@@ -23,7 +24,8 @@ function percentilePropertyValue(property: PercentileProperty, percentile: numbe
     return formatDisplayType(mean + zScore * stdev, property.display_type);
 }
 
-function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number, color: string): string {
+function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): string {
+    const color = colorForPercentile(percentile);
     return `
         <svg class="pct-metric">
             <g transform="translate(85, 0)">
@@ -55,7 +57,7 @@ function generatePercentileCategory(category: PercentileCategory): string {
         <text font-size="16" x="40" y="28" font-weight="bold">${category.title}</text>
     </svg>
     <div class="pct-metrics">
-    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, 1, 'rgb(216, 33, 41)')).join('')}
+    ${category.props.map((prop, idx) => generatePercentileMetric(prop, idx, idx)).join('')}
     </div>
     `;
 }
