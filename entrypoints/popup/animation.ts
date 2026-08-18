@@ -3,8 +3,8 @@ import {colorForPercentile} from "@/utils/shared/colors.ts";
 import {percentilePropertyValue} from "@/entrypoints/popup/module.ts";
 import type {PercentileProperty} from "@/utils/shared/stats";
 
-function setMetricToPercentile(metric: Element, percentile: number) {
-    const property: PercentileProperty = (metric as any).__percentileProperty;
+function setMetricToPercentile(metric: SVGSVGElement, percentile: number) {
+    const property: PercentileProperty = (metric as any).__percentileProperty!;
     const valueText = metric.querySelector('.value-text')!;
     const metricBounds = metric.getBoundingClientRect();
     const backgroundRect: SVGRectElement = metric.querySelector('.background-rect')!;

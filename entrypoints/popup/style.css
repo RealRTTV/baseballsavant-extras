@@ -69,11 +69,21 @@ svg {
   box-sizing: border-box;
 }
 
-.pct-metric {
+.pct-metric-container {
   height: 20px;
-  overflow: visible;
-  padding: 0 0 3px 0;
-  pointer-events: none;
+  pointer-events: all;
+  cursor: default;
+}
+
+.pct-metric {
+  height: inherit;
+  width: 100%;
+  overflow: visible; /* right edge of hover */
+}
+
+.pct-metric-divider {
+  height: 3px;
+  width: 100%;
 }
 
 .background-rect {}
@@ -85,11 +95,6 @@ svg {
 .value-text {}
 
 .hover-rect {
-  pointer-events: all;
-  opacity: 0;
+  opacity: 0.0;
   transition: opacity 250ms ease;
-}
-
-.hover-rect:hover {
-  opacity: 0.3;
 }

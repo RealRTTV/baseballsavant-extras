@@ -12,12 +12,14 @@ import {percentilePropertyValue} from "@/entrypoints/popup/module.ts";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
 
-function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): Element {
+function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): Element[] {
     const color = colorForPercentile(percentile);
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'pct-metric');
-    svg.innerHTML = `
+    const div = document.createElement('div');
+    div.setAttribute('class', 'pct-metric-container');
+    div.setAttribute('draggable', 'true');
+    div.innerHTML = `
+    <svg class="pct-metric">
         <rect class="hover-rect" width="100%" height="100%" rx="8" fill="lightblue" opacity="0"/>
         <g transform="translate(125, 0)">
             <rect style="width: calc(100% - 125px - 35px)" height="5" fill="#c7dcdc" y="7.5"/>
@@ -32,15 +34,18 @@ function generatePercentileMetric(property: PercentileProperty, ordinal: number 
             <circle r="10" fill="${color}" stroke="#fff" stroke-width="2"/>
             <text dominant-baseline="middle" text-anchor="middle" fill="#fff" y="1" font-size="12" font-weight="bold">${clamp(Math.round(percentile), 1, 100)}</text>
         </g>
-        ${ordinal === 0 ? '' : `
-        <path d="M80,-1.5L0,-1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(40px, 0)"/>
-        <path d="M0,-1.5L30,-1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(calc(100% - 30px), 0)"/>
-        `}
+    </svg>
     `;
-
-    (svg as any).__percentileProperty = property;
-
-    return svg;
+    div.onmouseenter = () => { div.querySelector('.hover-rect')!.style.opacity = '0.3'; };
+    div.onmouseleave = () => { div.querySelector('.hover-rect')!.style.opacity = '0.0'; };
+    (div.firstElementChild as any).__percentileProperty = property;
+    const divider = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    divider.setAttribute('class', 'pct-metric-divider');
+    divider.innerHTML = `
+    <path d="M 80 1.5 L 0 1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(40px, 0)"/>
+    <path d="M 0 1.5 L 30 1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(calc(100% - 30px), 0)"/>
+    `;
+    return ordinal === 0 ? [div] : [divider, div];
 }
 
 function generatePercentileCategory(category: PercentileCategory): Element[] {
@@ -54,7 +59,7 @@ function generatePercentileCategory(category: PercentileCategory): Element[] {
 
     const metrics = document.createElement('div');
     metrics.className = 'pct-metrics';
-    metrics.append(...category.props.map((prop, idx) => generatePercentileMetric(prop, idx, 1)));
+    metrics.append(...category.props.flatMap((prop, idx) => generatePercentileMetric(prop, idx, 1)));
 
     return [title, metrics];
 }
@@ -64,16 +69,18 @@ function generatePercentileSpec(spec: PercentileSpec): Element[] {
 }
 
 function postProcessMetrics() {
-    const metrics = Array.from(document.querySelectorAll('.pct-metric').values());
+    const metricContainers: HTMLDivElement[] = Array.from(document.querySelectorAll('.pct-metric-container').values()) as HTMLDivElement[];
 
-    for (const metric of metrics) {
+    for (const metricContainer of metricContainers) {
+        const metric: SVGSVGElement = metricContainer.firstElementChild! as SVGSVGElement;
         const text = metric.querySelector('.label-text')!;
-        const hoverRect = metric.querySelector('.hover-rect')!;
+        const hoverRect: SVGRectElement = metric.querySelector('.hover-rect')!;
         const metricBounds = metric.getBoundingClientRect();
         const textBounds = text.getBoundingClientRect();
         const leftEdge = 120 - textBounds.width - 4;
+        const width = metricBounds.width - leftEdge + 4;
         hoverRect.setAttribute('x', `${leftEdge}`);
-        hoverRect.setAttribute('width', `${metricBounds.width - leftEdge + 4}`);
+        hoverRect.setAttribute('width', `${width}`);
     }
 }
 
