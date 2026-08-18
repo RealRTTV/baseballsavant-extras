@@ -78,7 +78,7 @@ svg {
 .pct-metric {
   height: inherit;
   width: 100%;
-  overflow: visible; /* right edge of hover */
+  overflow: visible; /* right edge of hover-rect */
 }
 
 .pct-metric-divider {

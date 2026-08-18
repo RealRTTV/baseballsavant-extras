@@ -29,7 +29,7 @@ function setMetricToPercentile(metric: SVGSVGElement, percentile: number) {
     valueText.textContent = percentilePropertyValue(property, percentile * 100.0);
 }
 
-function tickMetric(metric: Element, dt: number, mouse: { x: number; y: number }) {
+function tickMetric(metric: SVGSVGElement, dt: number, mouse: { x: number; y: number }) {
     const metricBounds = metric.getBoundingClientRect();
 
     const initialTagetX = mouse.x - metricBounds.x;
@@ -38,7 +38,7 @@ function tickMetric(metric: Element, dt: number, mouse: { x: number; y: number }
 }
 
 function onAnimationFrame(dt: number, mouse: { x: number; y: number }) {
-    const metrics = Array.from(document.querySelectorAll('.pct-metric').values());
+    const metrics: SVGSVGElement[] = Array.from(document.querySelectorAll('.pct-metric').values()) as SVGSVGElement[];
 
     // metrics not loaded yet
     if (metrics.length === 0) {
@@ -51,9 +51,14 @@ function onAnimationFrame(dt: number, mouse: { x: number; y: number }) {
 }
 
 (() => {
-    const mouse = {x: 0, y: 0};
+    const mouse = { x: 0, y: 0 };
 
     window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    window.addEventListener('dragover', e => {
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     });

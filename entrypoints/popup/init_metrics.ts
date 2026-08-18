@@ -20,8 +20,8 @@ function generatePercentileMetric(property: PercentileProperty, ordinal: number 
     div.setAttribute('draggable', 'true');
     div.innerHTML = `
     <svg class="pct-metric">
-        <rect class="hover-rect" width="100%" height="100%" rx="8" fill="lightblue" opacity="0"/>
-        <g transform="translate(125, 0)">
+        <rect class="hover-rect" width="0" height="100%" rx="8" fill="lightblue" opacity="0"/>
+        <g transform="translate(125, 0)" fill="lightblue">
             <rect style="width: calc(100% - 125px - 35px)" height="5" fill="#c7dcdc" y="7.5"/>
             <rect class="background-rect" style="width: calc(${percentile / 100.0} * (100% - 125px - 35px - 10px) + 10px)" height="20" fill="${color}" y="0"/>
             <rect width="2" height="20" opacity="0.3" style="x: calc(10px - 1px)" fill="#fff"/>
@@ -78,9 +78,9 @@ function postProcessMetrics() {
         const metricBounds = metric.getBoundingClientRect();
         const textBounds = text.getBoundingClientRect();
         const leftEdge = 120 - textBounds.width - 4;
-        const width = metricBounds.width - leftEdge + 4;
-        hoverRect.setAttribute('x', `${leftEdge}`);
-        hoverRect.setAttribute('width', `${width}`);
+        const width = metricBounds.width - leftEdge + 8;
+        hoverRect.setAttribute('x', `${leftEdge}px`);
+        hoverRect.setAttribute('width', `${width}px`);
     }
 }
 
