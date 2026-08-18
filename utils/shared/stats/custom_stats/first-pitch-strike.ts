@@ -1,7 +1,7 @@
 import type {CustomStat} from "@/utils/shared/stats/custom_stats/module";
 import {DisplayType, type ExtendedPercentileProperty} from "@/utils/shared/stats";
 
-export const FIRST_PITCH_STRIKE: ExtendedPercentileProperty = {
+export const FIRST_PITCH_STRIKE: PercentileProperty = {
     label: "FPS %",
     value: "first_pitch_strike",
     percent_value: "percent_rank_first_pitch_strike",
