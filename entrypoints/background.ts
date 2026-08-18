@@ -6,7 +6,7 @@ const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
 
 function isCorrectJSFile(contents: string): boolean {
     for (const contain of MUST_CONTAIN) {
-        if (!contain.includes(contain)) {
+        if (!contents.includes(contain)) {
             return false;
         }
     }
@@ -72,15 +72,20 @@ function patchStatFormatting(src: string): string {
 }
 
 export default defineBackground(() => {
-    indexJsMixin();
+    jsBundleMixin();
     getStatcastData().then(_ => {});
 });
 
 const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
 
-function indexJsMixin() {
+function jsBundleMixin() {
     browser.webRequest.onBeforeRequest.addListener(
         (details) => {
+            const url = (details as any).originUrl as string;
+            if (url !== undefined && !url.includes('://baseballsavant.mlb.com/savant-player/')) {
+                return {};
+            }
+
             if (!details.url.includes('.js')) return {};
 
             const stream = (browser.webRequest as any).filterResponseData(details.requestId);
@@ -126,5 +131,5 @@ function indexJsMixin() {
 
 function badge(text: string) {
     browser.browserAction.setBadgeText({ text });
-    if (text) browser.browserAction.setBadgeBackgroundColor({ color: '#c00' });
+    if (text.length > 0) browser.browserAction.setBadgeBackgroundColor({ color: '#c00' });
 }
