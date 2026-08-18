@@ -60,3 +60,48 @@ export const ALL_STATS_SPEC: PercentileSpec = {
         altImage: "Pitching",
     }
 };
+
+export const CURRENT_STATS_SPEC: PercentileSpec = {
+    batterValue: {
+        title: "Batter Value",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+        altImage: "Trophy",
+    },
+    batting: {
+        title: "Batting",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
+        altImage: "Batter",
+    },
+    catching: {
+        title: "Catching",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
+        altImage: "Catcher",
+    },
+    fielding: {
+        title: "Fielding",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
+        altImage: "Fielder",
+    },
+    running: {
+        title: "Running",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
+        altImage: "Running",
+    },
+    pitcherValue: {
+        title: "Pitcher Value",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+        altImage: "Trophy",
+    },
+    pitching: {
+        title: "Pitching",
+        props: [],
+        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
+        altImage: "Pitching",
+    },
+}

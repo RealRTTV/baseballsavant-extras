@@ -1,6 +1,6 @@
 import './style.css';
 
-import {ALL_STATS_SPEC} from "@/utils/shared/stats/registry.ts";
+import {ALL_STATS_SPEC, CURRENT_STATS_SPEC} from "@/utils/shared/stats/registry.ts";
 import {clamp} from "@/utils/shared/math.ts";
 import {
     type PercentileCategory,
@@ -11,17 +11,35 @@ import {colorForPercentile} from "@/utils/shared/colors.ts";
 import {percentilePropertyValue} from "@/entrypoints/popup/module.ts";
 
 const AVAILABLE_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('available-pct-rankings')!;
+const SELECTED_PERCENTILE_RANKINGS: HTMLElement = document.getElementById('selected-pct-rankings')!;
 
-function generatePercentileMetric(property: PercentileProperty, ordinal: number = 0, percentile: number): Element[] {
+type GenerationContext = {
+    hoverRectColor: string;
+    draggable: boolean;
+    dividerPlacement?: 'before' | 'after' | undefined;
+};
+
+function createDivider(): Element {
+    const divider = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    divider.setAttribute('class', 'pct-metric-divider');
+    divider.innerHTML = `
+        <path d="M 120 1.5 L 40 1.5" stroke="#399098" stroke-width="1" stroke-dasharray="6 3"/>
+        <path d="M 30 1.5 L 0 1.5" stroke="#399098" stroke-width="1" stroke-dasharray="6 3" style="transform: translate(calc(100% - 30px), 0)"/>
+    `;
+    return divider;
+}
+
+function generatePercentileMetric(property: PercentileProperty, idx: number = 0, percentile: number, ctx: GenerationContext): Element[] {
     const color = colorForPercentile(percentile);
 
     const div = document.createElement('div');
     div.setAttribute('class', 'pct-metric-container');
-    div.setAttribute('draggable', 'true');
+    div.setAttribute('draggable', `${ctx.draggable}`);
+
     div.innerHTML = `
     <svg class="pct-metric">
-        <rect class="hover-rect" width="0" height="100%" rx="8" fill="lightblue" opacity="0"/>
-        <g transform="translate(125, 0)" fill="lightblue">
+        <rect class="hover-rect" width="0" height="100%" rx="8" fill="${ctx.hoverRectColor}" opacity="0"/>
+        <g transform="translate(125, 0)">
             <rect style="width: calc(100% - 125px - 35px)" height="5" fill="#c7dcdc" y="7.5"/>
             <rect class="background-rect" style="width: calc(${percentile / 100.0} * (100% - 125px - 35px - 10px) + 10px)" height="20" fill="${color}" y="0"/>
             <rect width="2" height="20" opacity="0.3" style="x: calc(10px - 1px)" fill="#fff"/>
@@ -36,19 +54,22 @@ function generatePercentileMetric(property: PercentileProperty, ordinal: number 
         </g>
     </svg>
     `;
-    div.onmouseenter = () => { div.querySelector('.hover-rect')!.style.opacity = '0.3'; };
-    div.onmouseleave = () => { div.querySelector('.hover-rect')!.style.opacity = '0.0'; };
+    div.onmouseenter = () => { (div.querySelector('.hover-rect')! as SVGRectElement).style.opacity = '0.3'; };
+    div.onmouseleave = () => { (div.querySelector('.hover-rect')! as SVGRectElement).style.opacity = '0.0'; };
     (div.firstElementChild as any).__percentileProperty = property;
-    const divider = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    divider.setAttribute('class', 'pct-metric-divider');
-    divider.innerHTML = `
-    <path d="M 80 1.5 L 0 1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(40px, 0)"/>
-    <path d="M 0 1.5 L 30 1.5" stroke="rgb(57, 144, 152)" stroke-width="1" stroke-dasharray="6 3" opacity="1" style="transform: translate(calc(100% - 30px), 0)"/>
-    `;
-    return ordinal === 0 ? [div] : [divider, div];
+
+    const divider = createDivider();
+
+    const result: Element[] = [div];
+    if (ctx.dividerPlacement === 'before') {
+        result.unshift(divider);
+    } else if (ctx.dividerPlacement === 'after') {
+        result.push(divider);
+    }
+    return result;
 }
 
-function generatePercentileCategory(category: PercentileCategory): Element[] {
+function generatePercentileCategory(category: PercentileCategory, ctx: GenerationContext): Element[] {
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     title.setAttribute('class', 'pct-group-title');
     title.innerHTML = `
@@ -59,13 +80,20 @@ function generatePercentileCategory(category: PercentileCategory): Element[] {
 
     const metrics = document.createElement('div');
     metrics.className = 'pct-metrics';
-    metrics.append(...category.props.flatMap((prop, idx) => generatePercentileMetric(prop, idx, 1)));
+    metrics.append(...category.props.flatMap((prop, idx) => {
+        if (idx === 0) {
+            ctx.dividerPlacement = undefined;
+        }  else {
+            ctx.dividerPlacement = 'before';
+        }
+        return generatePercentileMetric(prop, idx, 1, ctx);
+    }));
 
     return [title, metrics];
 }
 
-function generatePercentileSpec(spec: PercentileSpec): Element[] {
-    return Object.values(spec).flatMap(generatePercentileCategory);
+function generatePercentileSpec(spec: PercentileSpec, ctx: GenerationContext): Element[] {
+    return Object.values(spec).flatMap(category => generatePercentileCategory(category, ctx));
 }
 
 function postProcessMetrics() {
@@ -84,5 +112,6 @@ function postProcessMetrics() {
     }
 }
 
-AVAILABLE_PERCENTILE_RANKINGS.append(...generatePercentileSpec(ALL_STATS_SPEC));
+AVAILABLE_PERCENTILE_RANKINGS.append(...generatePercentileSpec(ALL_STATS_SPEC, { hoverRectColor: 'lightblue', draggable: true }));
+SELECTED_PERCENTILE_RANKINGS.append(...generatePercentileSpec(CURRENT_STATS_SPEC, { hoverRectColor: 'lightcoral', draggable: false }));
 postProcessMetrics();

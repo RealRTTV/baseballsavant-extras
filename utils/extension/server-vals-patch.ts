@@ -22,7 +22,6 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
     for (const stat of CALCULATED_STATS) {
         for (const season of ENABLED_SEASONS) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
-            const n: number = await getSampleNumberFromDB(stat, season, db);
 
             const { mean, stdev } = getDistributionDataOrDefault(stat.property, season);
             const value: number | null = statValue === undefined ? null : stat.value(statValue);
@@ -40,7 +39,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
                 metric: stat.property.value,
                 avg_metric: mean,
                 stddev_metric: stdev,
-                n,
+                n: 100, // requirement for qualification in this stat
                 season,
             })
         }
