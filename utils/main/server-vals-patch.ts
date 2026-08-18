@@ -40,7 +40,7 @@ export function applyServerValsPatch(serverVals: ServerVals, patches: ServerVals
             metric: summary.metric,
             avg_metric: summary.avg_metric,
             stddev_metric: summary.stddev_metric,
-            n: String(summary.n),
+            n: String(summary.qualification_threshold),
         };
     }
 

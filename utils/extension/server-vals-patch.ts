@@ -39,7 +39,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
                 metric: stat.property.value,
                 avg_metric: mean,
                 stddev_metric: stdev,
-                n: 100, // requirement for qualification in this stat
+                qualification_threshold: 100,
                 season,
             })
         }

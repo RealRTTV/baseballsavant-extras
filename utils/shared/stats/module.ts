@@ -36,6 +36,8 @@ export type ExtendedPercentileProperty = PercentileProperty & {
     approx_stdev: number,
 
     display_type: DisplayType,
+
+    qualification_threshold: number,
 };
 
 export enum DisplayType {
@@ -59,20 +61,6 @@ export enum DisplayType {
     FeetAndInches,
 }
 
-export function formatDisplayType(value: number, display: DisplayType) {
-    switch (display) {
-        case DisplayType.ThreeDecimalPlaceNoIntegerPortion: return value.toFixed(3); // todo
-        case DisplayType.ThreeDecimalPlace: return value.toFixed(3);
-        case DisplayType.TwoDecimalPlace: return value.toFixed(2);
-        case DisplayType.OneDecimalPlace: return value.toFixed(1);
-        case DisplayType.ZeroDecimalPlace: return value.toFixed(0);
-        case DisplayType.WithPercentOneDecimalPlace: return (value * 100.0).toFixed(1) + '%';
-        case DisplayType.WithPercentZeroDecimalPlaces: return (value * 100.0).toFixed(0) + '%';
-        case DisplayType.Degrees: return value.toFixed(1) + '°';
-        case DisplayType.FeetAndInches: return `${Math.floor(value / 12)}'${value % 12}"`;
-    }
-}
-
 export function isPercentileProperty(property: any): property is PercentileProperty {
     return typeof property.label === 'string' &&
         typeof property.value === 'string' &&
@@ -83,5 +71,6 @@ export function isExtendedPercentileProperty(property: PercentileProperty): prop
     return isPercentileProperty(property) &&
         typeof (property as any).approx_mean === 'number' &&
         typeof (property as any).approx_stdev === 'number' &&
-        typeof (property as any).display_type === 'number';
+        typeof (property as any).display_type === 'number' &&
+        typeof (property as any).qualification_threshold === 'number';
 }

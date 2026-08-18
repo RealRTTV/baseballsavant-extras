@@ -16,7 +16,7 @@ export type SummaryPatch = {
     metric: string,
     avg_metric: number,
     stddev_metric: number,
-    n: number,
+    qualification_threshold: number,
     season: number,
 };
 
