@@ -1,0 +1,44 @@
+:root {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+
+    --error-red: #c0392b;
+    --ink-black: #333;
+    --light-gray: #aaa;
+    --off-white: #f5f5f5;
+    --dark-gray: #2a2a2f;
+
+    color: var(--ink-black);
+}
+
+#drop-zone {
+    position: relative;
+    background: var(--dark-gray);
+    border-radius: 8px;
+}
+
+#drop-zone-svg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.delete-button {
+    margin-left: auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    line-height: 12px;
+    cursor: default;
+
+    transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+    background-color: rgb(from var(--error-red) r g b / 0.5);
+}

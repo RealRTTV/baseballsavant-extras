@@ -72,11 +72,16 @@ function patchStatFormatting(src: string): string {
 }
 
 export default defineBackground(() => {
+    sidePanel();
     jsBundleMixin();
     getStatcastData().then(_ => {});
 });
 
 const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
+
+function sidePanel() {
+    browser.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
+}
 
 function jsBundleMixin() {
     browser.webRequest.onBeforeRequest.addListener(

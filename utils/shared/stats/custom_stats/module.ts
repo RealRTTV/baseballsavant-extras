@@ -7,10 +7,12 @@ export interface CustomStat<Self> {
     apply(rows: StatcastRow[], map: Record<string, Self>): void;
 
     value(self: Self): number;
+
+    is_qualified(self: Self, threshold: number): boolean;
 }
 
-export function distributionData<T extends CustomStat<T>>(stat: T, byPlayer: Record<string, T>, qualifiedPitchers: Set<number>): [number, number] {
-    const values = Object.entries(byPlayer).filter(([key, _]) => qualifiedPitchers.has(Number(key))).map(([_, instance]) => stat.value(instance));
+export function distributionData<T extends CustomStat<T>>(stat: T, byPlayer: Record<string, T>): [number, number] {
+    const values = Object.values(byPlayer).filter(instance => stat.is_qualified(instance, stat.property.qualification_threshold)).map(instance => stat.value(instance));
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;

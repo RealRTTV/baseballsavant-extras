@@ -10,8 +10,6 @@ import {isExtendedPercentileProperty, type PercentileProperty} from "@/utils/sha
 export async function getStatcastData() {
     const db = await createDB();
 
-    await cacheQualifiedPitchersBySeason();
-
     await cacheStatcastData(db);
 
     await calculateStats(db);
@@ -35,8 +33,6 @@ type StatCache<T> = {
 
 const DISTRIBUTION_METRICS: Record<string, [number, number]> = {};
 
-const QUALIFIED_PITCHERS_BY_SEASON: Record<number, Set<number>> = {};
-
 async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
     return openDB<StatcastDB>('statcast-data', 1, {
         upgrade(db) {
@@ -44,14 +40,6 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
             db.createObjectStore('stats');
         }
     });
-}
-
-async function cacheQualifiedPitchersBySeason() {
-    console.log('Getting qualified pitchers per season...');
-    for (const season of ENABLED_SEASONS) {
-        QUALIFIED_PITCHERS_BY_SEASON[season] = new Set(await qualifiedPitchers(season));
-    }
-    console.debug(QUALIFIED_PITCHERS_BY_SEASON);
 }
 
 async function cacheStatcastData(db: IDBPDatabase<StatcastDB>) {
@@ -77,7 +65,7 @@ async function calculateStats(db: IDBPDatabase<StatcastDB>) {
             }
             cache.cachedDates.push(...newDates);
 
-            DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache.byPlayer, QUALIFIED_PITCHERS_BY_SEASON[season] ?? new Set());
+            DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache.byPlayer);
 
             await db.put('stats', cache, [season, stat.property.value]);
         }
