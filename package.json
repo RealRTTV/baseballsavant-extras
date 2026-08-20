@@ -22,6 +22,7 @@
     "wxt": "^0.21.4"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "idb": "^8.0.3",
     "papaparse": "^5.5.4"
   }

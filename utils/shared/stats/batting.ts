@@ -90,8 +90,8 @@ export const EXPECTED_ISOLATED_SLUGGING: PercentileProperty = {
     percent_value: "percent_rank_xiso"
 };
 
-export const SWEET_SPOT_RATE: PercentileProperty = {
-    label: "Sweet-Spot %",
+export const LA_SWEET_SPOT_RATE: PercentileProperty = {
+    label: "LA Sweet-Spot %",
     value: "sweet_spot_percent",
     percent_value: "percent_rank_sweet_spot_percent"
 };

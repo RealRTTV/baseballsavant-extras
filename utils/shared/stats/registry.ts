@@ -8,99 +8,104 @@ import * as FIELDING from "./fielding";
 import * as BASERUNNING from "./baserunning";
 import * as BATTING_ONLY from "./batting";
 
-const BATTER_VALUE_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_VALUE)]
-const BATTING_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_AND_PITCHING), ...Object.values(BATTING_ONLY)]
-const PITCHING_VALUE_PROPERTIES: PercentileProperty[] = [...Object.values(PITCHING_VALUE)]
-const PITCHING_PROPERTIES: PercentileProperty[] = [...Object.values(BATTING_AND_PITCHING), ...Object.values(PITCHING_ONLY)]
-const CATCHING_PROPERTIES: PercentileProperty[] = [...Object.values(CATCHING)]
-const FIELDING_PROPERTIES: PercentileProperty[] = [...Object.values(FIELDING)]
-const BASERUNNING_PROPERTIES: PercentileProperty[] = [...Object.values(BASERUNNING)]
+const ALL_PROPERTIES: PercentileProperty[] = [
+    ...Object.values(BATTING_VALUE),
+    ...Object.values(PITCHING_VALUE),
+    ...Object.values(BATTING_AND_PITCHING),
+    ...Object.values(BATTING_ONLY),
+    ...Object.values(PITCHING_ONLY),
+    ...Object.values(CATCHING),
+    ...Object.values(FIELDING),
+    ...Object.values(BASERUNNING),
+];
 
-export const ALL_STATS_SPEC: PercentileSpec = {
+const CURRENT_STATS_SPEC: PercentileSpec = {
     batterValue: {
         title: "Batter Value",
-        props: BATTER_VALUE_PROPERTIES,
+        props: [
+            BATTING_VALUE.BATTING_RUN_VALUE,
+            BATTING_VALUE.BASERUNNING_RUN_VALUE,
+            BATTING_VALUE.FIELDING_RUN_VALUE
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
         altImage: "Trophy",
     },
     batting: {
         title: "Batting",
-        props: BATTING_PROPERTIES,
+        props: [
+            BATTING_AND_PITCHING.EXPECTED_WEIGHTED_ON_BASE_AVERAGE,
+            BATTING_AND_PITCHING.EXPECTED_BATTING_AVERAGE,
+            BATTING_ONLY.EXPECTED_SLUGGING,
+            BATTING_AND_PITCHING.AVERAGE_EXIT_VELO,
+            BATTING_AND_PITCHING.BARREL_RATE,
+            BATTING_AND_PITCHING.HARD_HIT_RATE,
+            BATTING_ONLY.LA_SWEET_SPOT_RATE,
+            BATTING_ONLY.BAT_SPEED,
+            BATTING_ONLY.SQUARED_UP_RATE,
+            BATTING_AND_PITCHING.CHASE_RATE,
+            BATTING_AND_PITCHING.WHIFF_RATE,
+            BATTING_AND_PITCHING.STRIKEOUT_RATE,
+            BATTING_AND_PITCHING.WALK_RATE,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
         altImage: "Batter",
     },
     catching: {
         title: "Catching",
-        props: CATCHING_PROPERTIES,
+        props: [
+            CATCHING.BLOCKS_ABOVE_AVERAGE,
+            CATCHING.CAUGHT_STEALING_ABOVE_AVERAGE,
+            CATCHING.FRAMING,
+            CATCHING.POP_TIME,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
         altImage: "Catcher",
     },
     fielding: {
         title: "Fielding",
-        props: FIELDING_PROPERTIES,
+        props: [
+            FIELDING.OUTS_ABOVE_AVERAGE,
+            FIELDING.ARM_VALUE,
+            FIELDING.ARM_STRENGTH,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
         altImage: "Fielder",
     },
     running: {
         title: "Running",
-        props: BASERUNNING_PROPERTIES,
+        props: [
+            BASERUNNING.SPRINT_SPEED,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
         altImage: "Running",
     },
     pitcherValue: {
         title: "Pitcher Value",
-        props: PITCHING_VALUE_PROPERTIES,
+        props: [
+            PITCHING_VALUE.PITCHING_RUN_VALUE,
+            PITCHING_VALUE.FASTBALL_RUN_VALUE,
+            PITCHING_VALUE.BREAKING_RUN_VALUE,
+            PITCHING_VALUE.OFFSPEED_RUN_VALUE,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
         altImage: "Trophy",
     },
     pitching: {
         title: "Pitching",
-        props: PITCHING_PROPERTIES,
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
-        altImage: "Pitching",
-    }
-};
-
-export const CURRENT_STATS_SPEC: PercentileSpec = {
-    batterValue: {
-        title: "Batter Value",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
-        altImage: "Trophy",
-    },
-    batting: {
-        title: "Batting",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
-        altImage: "Batter",
-    },
-    catching: {
-        title: "Catching",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
-        altImage: "Catcher",
-    },
-    fielding: {
-        title: "Fielding",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
-        altImage: "Fielder",
-    },
-    running: {
-        title: "Running",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
-        altImage: "Running",
-    },
-    pitcherValue: {
-        title: "Pitcher Value",
-        props: [],
-        image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
-        altImage: "Trophy",
-    },
-    pitching: {
-        title: "Pitching",
-        props: [],
+        props: [
+            PITCHING_ONLY.EXPECTED_ERA,
+            BATTING_AND_PITCHING.EXPECTED_BATTING_AVERAGE,
+            PITCHING_ONLY.FASTBALL_VELO,
+            BATTING_AND_PITCHING.AVERAGE_EXIT_VELO,
+            BATTING_AND_PITCHING.CHASE_RATE,
+            BATTING_AND_PITCHING.WHIFF_RATE,
+            BATTING_AND_PITCHING.STRIKEOUT_RATE,
+            BATTING_AND_PITCHING.WALK_RATE,
+            BATTING_AND_PITCHING.BARREL_RATE,
+            BATTING_AND_PITCHING.HARD_HIT_RATE,
+            BATTING_AND_PITCHING.GROUNDBALL_RATE,
+            PITCHING_ONLY.EXTENSION,
+        ],
         image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
         altImage: "Pitching",
     },
