@@ -30,11 +30,6 @@ export type PercentileProperty = {
 };
 
 export type ExtendedPercentileProperty = PercentileProperty & {
-    /** Used in rendering the values on the popup */
-    approx_mean: number,
-    /** Used in rendering the values on the popup */
-    approx_stdev: number,
-
     display_type: DisplayType,
 
     qualification_threshold: number,

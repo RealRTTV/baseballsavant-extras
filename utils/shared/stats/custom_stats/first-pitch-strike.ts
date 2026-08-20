@@ -6,8 +6,6 @@ export const FIRST_PITCH_STRIKE: ExtendedPercentileProperty = {
     value: "first_pitch_strike",
     percent_value: "percent_rank_first_pitch_strike",
 
-    approx_mean: 61.5,
-    approx_stdev: 3.5,
     display_type: DisplayType.OneDecimalPlace,
     qualification_threshold: 100,
 };

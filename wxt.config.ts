@@ -3,7 +3,7 @@ import {defineConfig} from 'wxt';
 export default defineConfig({
     manifest: {
         permissions: [
-            'sidePanel',
+            'storage',
             'webRequest',
             'webRequestBlocking',
             '*://baseballsavant.mlb.com/*',

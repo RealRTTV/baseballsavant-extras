@@ -1,6 +1,5 @@
-export * from './registry';
 export * from './batting_value.ts';
-export * from './batting_and_pitching';
+export * from './batting-and-pitching.ts';
 export * from './pitcher_value';
 export * from './pitching';
 export * from './catching';
