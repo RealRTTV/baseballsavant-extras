@@ -7,7 +7,7 @@
     --light-gray: #aaa;
     --off-white: #f5f5f5;
     --dark-gray: #2a2a2f;
-    --success-green: #5cb85c;
+    --success-green: #97df97;
 
     color: var(--ink-black);
 }
@@ -59,14 +59,14 @@ hr.divider-line {
     outline: none;
 }
 
-#drop-zone {
+#custom-stats {
     position: relative;
     background: var(--dark-gray);
     border-radius: 8px;
     min-height: calc(24px * 5 + 8px * 2 + 8px * 4);
 }
 
-#drop-zone-svg {
+#custom-stats-svg {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -131,20 +131,21 @@ hr.divider-line {
     display: block;
     text-align: right;
     font-size: 12px;
-    background-color: var(--light-gray);
+    background-color: var(--off-white);
     padding: 2px 4px;
     border-radius: 4px;
-    border: 1px solid var(--ink-black);
+    color: var(--error-red);
+    border: 1px solid var(--error-red);
 }
 
-#drop-zone-entries {
+#custom-stats-entries {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 8px;
 }
 
-.drop-zone-entry {
+.custom-stats-entry {
     min-height: 24px;
     box-sizing: content-box;
     background-color: var(--off-white);
@@ -155,7 +156,7 @@ hr.divider-line {
     padding: 0 5px;
 }
 
-.drop-zone-entry-name {
+.custom-stats-entry-name {
     font-size: 12px;
     font-family: 'Roboto Mono', monospace;
     max-width: calc(100% - 20px);
