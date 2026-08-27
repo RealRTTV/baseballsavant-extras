@@ -1,7 +1,7 @@
 import {getStatcastData} from "@/utils/extension/statcast";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
-import {getConfigPercentileSpec} from "@/utils/extension/config.ts";
+import {getConfig} from "@/utils/extension/config.ts";
 
 const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
 
@@ -116,7 +116,7 @@ function jsBundleMixin() {
                         console.log('Applied Percentile Rankings Patch Successfully!');
                         out = patchStatFormatting(out);
                         console.log('Applied Stat Formatting Patch Successfully!');
-                        out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + `globalThis.__savantNewPercentileSpec=${JSON.stringify(getConfigPercentileSpec())};` + '\n;' + mixinCode + '\n;' + out;
+                        out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + `globalThis.__savantNewPercentileSpec=${JSON.stringify(getConfig().percentiles)};` + '\n;' + mixinCode + '\n;' + out;
                         badge('');
                     }
                 } catch (err) {

@@ -1,12 +1,10 @@
-import TOML from 'smol-toml';
-import {onTOMLConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/extension/config.ts";
+import {onConfigWrite, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/extension/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/popup/textarea-helper.ts";
 
-export function onConfigTOMLInput(textarea: HTMLTextAreaElement) {
+export function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        const result = TOML.parse(textarea.value);
-        onTOMLConfig(result, textarea.value);
+        onConfigWrite(textarea.value);
 
         setTextareaConsoleSuccess();
     } catch (e: any) {
@@ -21,7 +19,7 @@ SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
 
     if (textarea !== null) {
         textarea.value = CONFIG;
-        onConfigTOMLInput(textarea);
-        textarea.addEventListener('input', _ => onConfigTOMLInput(textarea));
+        onConfigInput(textarea);
+        textarea.addEventListener('input', _ => onConfigInput(textarea));
     }
 });

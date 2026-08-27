@@ -3,13 +3,17 @@ import type {PercentileProperty, PercentileSpec} from "@/utils/shared/stats";
 import {ALL_PERCENTILE_PROPERTIES, DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError} from "@/entrypoints/popup/textarea-helper.ts";
 
+export type ParsedConfig = {
+    percentiles: PercentileSpec,
+}
+
 export const SAVANT_EXTRAS_CONFIG_STRING = storage.defineItem('local:config', {
     fallback: DEFAULT_CONFIG,
 });
 
 function mapValueStringsToPercentileProperties(values: string[] | undefined): PercentileProperty[] {
     if (values === undefined || !Array.isArray(values) || values.some(v => typeof v !== 'string')) {
-        return [];
+        throw new Error(`percentile properties category must be an array of strings, got ${typeof values}`);
     }
 
     return values.map(value => {
@@ -21,75 +25,78 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined): Pe
     })
 }
 
-function parseTOMLConfig(toml: Record<string, any>): PercentileSpec {
-    console.log('ran parseTOMLConfig');
+function parseConfig(toml: TomlTable): ParsedConfig {
+    return {
+        percentiles: parsePercentileConfig(toml['percentiles'] as Record<string, any>),
+    }
+}
 
+function parsePercentileConfig(percentiles: Record<string, any>): PercentileSpec {
     return {
         batterValue: {
             title: "Batter Value",
-            props: mapValueStringsToPercentileProperties(toml['batter-value']),
+            props: mapValueStringsToPercentileProperties(percentiles['batter-value']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
             altImage: "Trophy",
         },
         batting: {
             title: "Batting",
-            props: mapValueStringsToPercentileProperties(toml['batting']),
+            props: mapValueStringsToPercentileProperties(percentiles['batting']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
             altImage: "Batter",
         },
         catching: {
             title: "Catching",
-            props: mapValueStringsToPercentileProperties(toml['catching']),
+            props: mapValueStringsToPercentileProperties(percentiles['catching']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
             altImage: "Catcher",
         },
         fielding: {
             title: "Fielding",
-            props: mapValueStringsToPercentileProperties(toml['fielding']),
+            props: mapValueStringsToPercentileProperties(percentiles['fielding']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
             altImage: "Fielder",
         },
         running: {
             title: "Running",
-            props: mapValueStringsToPercentileProperties(toml['running']),
+            props: mapValueStringsToPercentileProperties(percentiles['running']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
             altImage: "Running",
         },
         pitcherValue: {
             title: "Pitcher Value",
-            props: mapValueStringsToPercentileProperties(toml['pitcher-value']),
+            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
             altImage: "Trophy",
         },
         pitching: {
             title: "Pitching",
-            props: mapValueStringsToPercentileProperties(toml['pitching']),
+            props: mapValueStringsToPercentileProperties(percentiles['pitching']),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
             altImage: "Pitching",
         },
     }
 }
 
-let CURRENT_PERCENTILE_SPEC: PercentileSpec = parseTOMLConfig(TOML.parse(DEFAULT_CONFIG));
+let CURRENT_CONFIG: ParsedConfig = parseConfig(TOML.parse(DEFAULT_CONFIG));
 
-export function onTOMLConfig(toml: TomlTable, toml_string: string) {
-    CURRENT_PERCENTILE_SPEC = parseTOMLConfig(toml);
+export function onConfigWrite(toml_string: string) {
+    const toml = TOML.parse(toml_string);
+    CURRENT_CONFIG = parseConfig(toml);
     SAVANT_EXTRAS_CONFIG_STRING.setValue(toml_string).catch(e => setTextareaConsoleError(e));
-
-    console.log(CURRENT_PERCENTILE_SPEC);
 }
 
 function initializeConfigCache() {
     SAVANT_EXTRAS_CONFIG_STRING.getValue().then(toml_string => {
-        CURRENT_PERCENTILE_SPEC = parseTOMLConfig(TOML.parse(toml_string));
+        CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
     });
     SAVANT_EXTRAS_CONFIG_STRING.watch(toml_string => {
-        CURRENT_PERCENTILE_SPEC = parseTOMLConfig(TOML.parse(toml_string));
+        CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
     })
 }
 
-export function getConfigPercentileSpec(): PercentileSpec {
-    return CURRENT_PERCENTILE_SPEC;
+export function getConfig(): ParsedConfig {
+    return CURRENT_CONFIG;
 }
 
 initializeConfigCache();

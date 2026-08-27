@@ -8,12 +8,12 @@ import * as BASERUNNING from "@/utils/shared/stats/baserunning.ts";
 import * as PITCHING_VALUE from "@/utils/shared/stats/pitcher_value.ts";
 import * as PITCHING_ONLY from "@/utils/shared/stats/pitching.ts";
 
-export const DEFAULT_CONFIG: string = `batter-value = [
+export const DEFAULT_CONFIG: string = `[percentiles]
+batter-value = [
   "swing_take_run_value",
   "runner_run_value",
   "fielding_run_value"
 ]
-
 batting = [
   "xwoba",
   "xba",
@@ -29,29 +29,24 @@ batting = [
   "k_percent",
   "bb_percent"
 ]
-
 catching = [
   "blocks_above_average",
   "cs_above_average",
   "fielding_run_value_framing",
   "pop_2b"
 ]
-
 fielding = [
   "oaa",
   "fielding_run_value_arm",
   "arm_overall"
 ]
-
 running = [ "sprint_speed" ]
-
 pitcher-value = [
   "swing_take_run_value",
   "pitch_run_value_fastball",
   "pitch_run_value_breaking",
   "pitch_run_value_offspeed"
 ]
-
 pitching = [
   "xera",
   "xba",
