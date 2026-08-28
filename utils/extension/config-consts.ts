@@ -1,13 +1,3 @@
-import type {PercentileProperty} from "@/utils/shared/stats";
-import * as BATTING_VALUE from "@/utils/shared/stats/batting_value.ts";
-import * as BATTING_AND_PITCHING from "@/utils/shared/stats/batting-and-pitching.ts";
-import * as BATTING_ONLY from "@/utils/shared/stats/batting.ts";
-import * as CATCHING from "@/utils/shared/stats/catching.ts";
-import * as FIELDING from "@/utils/shared/stats/fielding.ts";
-import * as BASERUNNING from "@/utils/shared/stats/baserunning.ts";
-import * as PITCHING_VALUE from "@/utils/shared/stats/pitcher_value.ts";
-import * as PITCHING_ONLY from "@/utils/shared/stats/pitching.ts";
-
 export const DEFAULT_CONFIG: string = `[percentiles]
 batter-value = [
   "swing_take_run_value",
@@ -70,14 +60,3 @@ years = []
 stats = [
   'first-pitch-strike.js'
 ]`;
-
-export const ALL_PERCENTILE_PROPERTIES: PercentileProperty[] = [
-    ...Object.values(BATTING_VALUE),
-    ...Object.values(PITCHING_VALUE),
-    ...Object.values(BATTING_AND_PITCHING),
-    ...Object.values(BATTING_ONLY),
-    ...Object.values(PITCHING_ONLY),
-    ...Object.values(CATCHING),
-    ...Object.values(FIELDING),
-    ...Object.values(BASERUNNING),
-];

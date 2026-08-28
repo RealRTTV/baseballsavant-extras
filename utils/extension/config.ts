@@ -1,6 +1,14 @@
 import TOML, {type TomlTable} from "smol-toml";
+import * as BATTING_VALUE from "@/utils/shared/stats/batting_value.ts";
+import * as BATTING_AND_PITCHING from "@/utils/shared/stats/batting-and-pitching.ts";
+import * as BATTING_ONLY from "@/utils/shared/stats/batting.ts";
+import * as CATCHING from "@/utils/shared/stats/catching.ts";
+import * as FIELDING from "@/utils/shared/stats/fielding.ts";
+import * as BASERUNNING from "@/utils/shared/stats/baserunning.ts";
+import * as PITCHING_VALUE from "@/utils/shared/stats/pitcher_value.ts";
+import * as PITCHING_ONLY from "@/utils/shared/stats/pitching.ts";
 import type {PercentileProperty, PercentileSpec} from "@/utils/shared/stats";
-import {ALL_PERCENTILE_PROPERTIES, DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
+import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError} from "@/entrypoints/popup/textarea-helper.ts";
 import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
 
@@ -14,13 +22,25 @@ export const SAVANT_EXTRAS_CONFIG_STRING = storage.defineItem('local:config', {
     fallback: DEFAULT_CONFIG,
 });
 
-function mapValueStringsToPercentileProperties(values: string[] | undefined): PercentileProperty[] {
+export const ALL_PERCENTILE_PROPERTIES: (activeStats: CustomStat<any>[]) => PercentileProperty[] = (activeStats) => [
+    ...Object.values(BATTING_VALUE),
+    ...Object.values(PITCHING_VALUE),
+    ...Object.values(BATTING_AND_PITCHING),
+    ...Object.values(BATTING_ONLY),
+    ...Object.values(PITCHING_ONLY),
+    ...Object.values(CATCHING),
+    ...Object.values(FIELDING),
+    ...Object.values(BASERUNNING),
+    ...activeStats.map(stat => stat.property),
+];
+
+function mapValueStringsToPercentileProperties(values: string[] | undefined, newlyActiveStats: CustomStat<any>[]): PercentileProperty[] {
     if (values === undefined || !Array.isArray(values) || values.some(v => typeof v !== 'string')) {
         throw new Error(`percentile properties category must be an array of strings, got ${typeof values}`);
     }
 
     return values.map(value => {
-        const match = ALL_PERCENTILE_PROPERTIES.find(p => p.value === value);
+        const match = ALL_PERCENTILE_PROPERTIES(newlyActiveStats).find(p => p.value === value);
         if (match === undefined) {
             throw new Error(`unknown percentile property ${value}`);
         }
@@ -29,66 +49,68 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined): Pe
 }
 
 function parseConfig(toml: TomlTable): ParsedConfig {
+    const activeStats: CustomStat<any>[] = [ FIRST_PITCH_STRIKE_CODE ];
+    const activeYears = (() => {
+        const entry = toml['active-years'] as Record<string, any>;
+        const includeCurrent = entry['include-current'] === true;
+        const currentYear = new Date().getFullYear();
+        const years = (entry['years'] ?? []) as number[];
+        if (includeCurrent && !years.includes(currentYear)) {
+            years.push(currentYear);
+        }
+        years.sort((a, b) => b - a); // descending
+        return years;
+    })();
+    const percentiles = parsePercentileConfig(toml['percentiles'] as Record<string, any>, activeStats);
+
     return {
-        percentiles: parsePercentileConfig(toml['percentiles'] as Record<string, any>),
-        activeYears: (() => {
-            const entry = toml['active-years'] as Record<string, any>;
-            const includeCurrent = entry['include-current'] === true;
-            const currentYear = new Date().getFullYear();
-            const years = (entry['years'] ?? []) as number[];
-            if (includeCurrent && !years.includes(currentYear)) {
-                years.push(currentYear);
-            }
-            years.sort((a, b) => b - a); // descending
-            return years;
-        })(),
-        activeStats: [
-            FIRST_PITCH_STRIKE_CODE,
-        ],
+        percentiles: percentiles,
+        activeYears: activeYears,
+        activeStats: activeStats,
     }
 }
 
-function parsePercentileConfig(percentiles: Record<string, any>): PercentileSpec {
+function parsePercentileConfig(percentiles: Record<string, any>, newlyActiveStats: CustomStat<any>[]): PercentileSpec {
     return {
         batterValue: {
             title: "Batter Value",
-            props: mapValueStringsToPercentileProperties(percentiles['batter-value']),
+            props: mapValueStringsToPercentileProperties(percentiles['batter-value'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
             altImage: "Trophy",
         },
         batting: {
             title: "Batting",
-            props: mapValueStringsToPercentileProperties(percentiles['batting']),
+            props: mapValueStringsToPercentileProperties(percentiles['batting'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
             altImage: "Batter",
         },
         catching: {
             title: "Catching",
-            props: mapValueStringsToPercentileProperties(percentiles['catching']),
+            props: mapValueStringsToPercentileProperties(percentiles['catching'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
             altImage: "Catcher",
         },
         fielding: {
             title: "Fielding",
-            props: mapValueStringsToPercentileProperties(percentiles['fielding']),
+            props: mapValueStringsToPercentileProperties(percentiles['fielding'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
             altImage: "Fielder",
         },
         running: {
             title: "Running",
-            props: mapValueStringsToPercentileProperties(percentiles['running']),
+            props: mapValueStringsToPercentileProperties(percentiles['running'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
             altImage: "Running",
         },
         pitcherValue: {
             title: "Pitcher Value",
-            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value']),
+            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
             altImage: "Trophy",
         },
         pitching: {
             title: "Pitching",
-            props: mapValueStringsToPercentileProperties(percentiles['pitching']),
+            props: mapValueStringsToPercentileProperties(percentiles['pitching'], newlyActiveStats),
             image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
             altImage: "Pitching",
         },
