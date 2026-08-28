@@ -18,10 +18,10 @@ export function* seasonDates(season: number): Generator<string> {
     }
 }
 
-export function getDistributionData(stat: PercentileProperty, season: number): { mean: number, stdev: number } | null {
+export function getDistributionData(stat: PercentileProperty, season: number): { mean: number, stdev: number } | undefined {
     const result = DISTRIBUTION_METRICS[`${season}:${stat.value}`];
     if (result === undefined) {
-        return null;
+        return undefined;
     } else {
         const [mean, stdev] = result;
         return { mean, stdev };

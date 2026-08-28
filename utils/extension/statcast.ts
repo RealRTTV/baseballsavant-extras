@@ -1,5 +1,3 @@
-import Papa from 'papaparse';
-
 import {type DBSchema, type IDBPDatabase, openDB} from 'idb';
 import PQueue from "p-queue";
 import {distributionData} from "@/utils/shared/stats/custom_stats";
@@ -44,7 +42,12 @@ export function rerunStatcastDataCalculations() {
     TASK_QUEUE_QUEUE.add(async () => {
         TASK_QUEUE.clear();
         await TASK_QUEUE.onIdle();
-        TASK_QUEUE.addAll(await getAllTasks()).then(_ => {});
+        TASK_QUEUE.addAll(
+            (await getAllTasks())
+                .map(task => async () => task()
+                    .catch(err => console.error('An error occurred in a statcast task:', err.message ?? err))
+                )
+        ).then(_ => {});
 
         if (TASK_QUEUE_QUEUE.size === 0) {
             TASK_QUEUE.start();
@@ -106,19 +109,18 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
                 const cache: StatCache<any> | undefined = (await db.get('stats', [season, stat.property.value])) ?? { cachedDates: [], byPlayer: {} };
 
                 const newDates = seasonDates(season).filter(date => !cache.cachedDates.includes(date)).toArray();
-                if (newDates.length === 0) {
-                    return;
-                }
 
                 for (const date of newDates) {
                     const data = await getDayFromDB(date, db);
-                    stat.apply(data.data.filter(r => r.game_type === 'R'), cache.byPlayer);
+                    stat.apply(data.data, cache.byPlayer);
                 }
                 cache.cachedDates.push(...newDates);
 
                 DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache.byPlayer);
+                console.log(DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
                 await db.put('stats', cache, [season, stat.property.value]);
+                console.log(`Calculated ${stat.property.value} for ${season}`);
             });
         }
     }

@@ -73,45 +73,45 @@ function parseConfig(toml: TomlTable): ParsedConfig {
 function parsePercentileConfig(percentiles: Record<string, any>, newlyActiveStats: CustomStat<any>[]): PercentileSpec {
     return {
         batterValue: {
-            title: "Batter Value",
+            title: "Value",
             props: mapValueStringsToPercentileProperties(percentiles['batter-value'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+            image: "slider-trophy.png",
             altImage: "Trophy",
         },
         batting: {
             title: "Batting",
             props: mapValueStringsToPercentileProperties(percentiles['batting'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-batter.png",
+            image: "slider-batter.png",
             altImage: "Batter",
         },
         catching: {
             title: "Catching",
             props: mapValueStringsToPercentileProperties(percentiles['catching'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-catcher.png",
+            image: "slider-catcher.png",
             altImage: "Catcher",
         },
         fielding: {
             title: "Fielding",
             props: mapValueStringsToPercentileProperties(percentiles['fielding'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-fielder.png",
+            image: "slider-fielder.png",
             altImage: "Fielder",
         },
         running: {
             title: "Running",
             props: mapValueStringsToPercentileProperties(percentiles['running'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-runner.png",
+            image: "slider-runner.png",
             altImage: "Running",
         },
         pitcherValue: {
-            title: "Pitcher Value",
+            title: "Value",
             props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-trophy.png",
+            image: "slider-trophy.png",
             altImage: "Trophy",
         },
         pitching: {
             title: "Pitching",
             props: mapValueStringsToPercentileProperties(percentiles['pitching'], newlyActiveStats),
-            image: "https://baseballsavant.mlb.com/sections/player-update/images/sliders/slider-pitcher.png",
+            image: "slider-pitcher.png",
             altImage: "Pitching",
         },
     }
