@@ -14,7 +14,7 @@ import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/cus
 
 export type ParsedConfig = {
     percentiles: PercentileSpec,
-    activeYears: number[],
+    activeSeasons: number[],
     activeStats: CustomStat<any>[], // todo
 }
 
@@ -50,22 +50,22 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, new
 
 function parseConfig(toml: TomlTable): ParsedConfig {
     const activeStats: CustomStat<any>[] = [ FIRST_PITCH_STRIKE_CODE ];
-    const activeYears = (() => {
-        const entry = toml['active-years'] as Record<string, any>;
+    const activeSeasons = (() => {
+        const entry = toml['active-seasons'] as Record<string, any>;
         const includeCurrent = entry['include-current'] === true;
-        const currentYear = new Date().getFullYear();
-        const years = (entry['years'] ?? []) as number[];
-        if (includeCurrent && !years.includes(currentYear)) {
-            years.push(currentYear);
+        const currentSeason = new Date().getFullYear();
+        const seasons = (entry['seasons'] ?? []) as number[];
+        if (includeCurrent && !seasons.includes(currentSeason)) {
+            seasons.push(currentSeason);
         }
-        years.sort((a, b) => b - a); // descending
-        return years;
+        seasons.sort((a, b) => b - a); // descending
+        return seasons;
     })();
     const percentiles = parsePercentileConfig(toml['percentiles'] as Record<string, any>, activeStats);
 
     return {
         percentiles: percentiles,
-        activeYears: activeYears,
+        activeSeasons: activeSeasons,
         activeStats: activeStats,
     }
 }

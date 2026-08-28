@@ -1,12 +1,12 @@
 import { prettyPrintFileSize } from "@/utils/shared/files";
 
-export function createCalculatedYear(year: number, file_size?: number): HTMLDivElement {
+export function createCalculatedSeason(season: number, file_size?: number): HTMLDivElement {
     const div = document.createElement('div');
-    div.className = 'calculated-year';
+    div.className = 'cached-season';
     div.innerHTML = `
-<span class="calculated-year-year">${year}</span>
-<span class="calculated-year-file-size">${prettyPrintFileSize(file_size ?? 0)}</span>
-<span class="calculated-year-purge">Purge</span>
+<span class="cached-season-year">${season}</span>
+<span class="cached-season-file-size">${prettyPrintFileSize(file_size ?? 0)}</span>
+<span class="cached-season-purge">Purge</span>
     `;
     return div;
 }

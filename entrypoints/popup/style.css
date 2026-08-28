@@ -94,7 +94,7 @@ hr.divider-line {
     background-color: rgb(from var(--error-red) r g b / 0.5);
 }
 
-#cached-years {
+#cached-seasons {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -103,13 +103,13 @@ hr.divider-line {
     box-sizing: border-box;
 }
 
-.cached-year {
+.cached-season {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.cached-year-year {
+.cached-season-year {
     display: block;
     text-align: left;
     font-size: 12px;
@@ -118,14 +118,14 @@ hr.divider-line {
     border: 1px solid var(--ink-black);
 }
 
-.cached-year-file-size {
+.cached-season-file-size {
     margin: 0 0 0 auto;
     display: block;
     text-align: right;
     font-size: 12px;
 }
 
-.cached-year-purge {
+.cached-season-purge {
     margin: 0 0 0 8px;
     display: block;
     text-align: right;

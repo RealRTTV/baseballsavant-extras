@@ -55,3 +55,8 @@ export async function getDayFromDB(date: string, db: IDBPDatabase<StatcastDB>): 
         dynamicTyping: true,
     });
 }
+
+export async function getFileSizeForSeason(season: number, db: IDBPDatabase<StatcastDB>): Promise<number> {
+    const result = await db.get('season', String(season));
+    return result?.fileSize ?? 0;
+}

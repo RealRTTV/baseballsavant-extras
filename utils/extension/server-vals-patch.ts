@@ -18,7 +18,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
     const db = await openDB<StatcastDB>('statcast-data');
 
     for (const stat of getConfig().activeStats) {
-        for (const season of getConfig().activeYears) {
+        for (const season of getConfig().activeSeasons) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
             const { mean, stdev } = getDistributionData(stat.property, season)!;

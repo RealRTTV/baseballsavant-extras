@@ -69,6 +69,10 @@ export interface StatcastDB extends DBSchema {
         key: string;
         value: string;
     };
+    season: {
+        key: string;
+        value: { fileSize: number };
+    }
     stats: {
         key: [number, string];
         value: StatCache<any>;
@@ -86,6 +90,7 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
     return openDB<StatcastDB>('statcast-data', 1, {
         upgrade(db) {
             db.createObjectStore('date');
+            db.createObjectStore('season');
             db.createObjectStore('stats');
         }
     });
@@ -93,7 +98,7 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
 
 async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
     const tasks = [];
-    for (const season of getConfig().activeYears) {
+    for (const season of getConfig().activeSeasons) {
         tasks.push(...await createDayCacheTasks(season, db));
     }
     return tasks;
@@ -102,7 +107,7 @@ async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promi
 function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise<void>)[] {
     const tasks = [];
     for (const stat of getConfig().activeStats) {
-        for (const season of getConfig().activeYears) {
+        for (const season of getConfig().activeSeasons) {
             tasks.push(async () => {
                 console.log(`Calculating ${stat.property.value} for ${season}...`);
 
@@ -117,7 +122,6 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
                 cache.cachedDates.push(...newDates);
 
                 DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache.byPlayer);
-                console.log(DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
                 await db.put('stats', cache, [season, stat.property.value]);
                 console.log(`Calculated ${stat.property.value} for ${season}`);
@@ -134,6 +138,10 @@ async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>)
         const result = await getDayFromURL(date);
         if (result !== null) {
             await db.put('date', result, date);
+
+            const seasonData = await db.get('season', String(season)) ?? { fileSize: 0 };
+            seasonData.fileSize += result.length;
+            await db.put('season', seasonData, String(season));
         }
     }))
 }

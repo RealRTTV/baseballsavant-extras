@@ -52,9 +52,9 @@ pitching = [
   "fastball_extension"
 ]
 
-[active-years]
+[active-seasons]
 include-current = true
-years = []
+seasons = []
 
 [active-stats]
 stats = [
