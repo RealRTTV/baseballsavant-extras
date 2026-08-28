@@ -26,6 +26,5 @@ SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
 });
 
 function onConfig(config: ParsedConfig) {
-    console.log(config.activeYears);
     sendRerunStatcastDataCalculationsRequest();
 }

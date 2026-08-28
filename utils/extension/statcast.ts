@@ -129,7 +129,6 @@ async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>)
     const allDates = await db.getAllKeys('date');
 
     return Array.from(seasonDates(season).filter(date => !allDates.includes(date)).map(date => async () => {
-        console.log(date);
         const result = await getDayFromURL(date);
         if (result !== null) {
             await db.put('date', result, date);
