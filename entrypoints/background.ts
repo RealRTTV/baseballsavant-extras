@@ -4,9 +4,9 @@ import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 import {getConfig} from "@/utils/extension/config.ts";
 import {rerunStatcastDataCalculationsHandler} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
 
-const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
-
 function isCorrectJSFile(contents: string): boolean {
+    const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
+
     for (const contain of MUST_CONTAIN) {
         if (!contents.includes(contain)) {
             return false;
