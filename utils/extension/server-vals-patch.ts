@@ -2,11 +2,10 @@ import {clamp, zScoreToPercentile} from "@/utils/shared/math";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {openDB} from "idb";
 import {
-    getDistributionDataOrDefault,
-    getStatFromDB,
     type StatcastDB
 } from "@/utils/extension/statcast";
 import {getConfig} from "@/utils/extension/config.ts";
+import {getDistributionData, getStatFromDB} from "@/utils/extension/statcast-helper.ts";
 
 export async function createServerValsPatch(playerId: number): Promise<ServerValsPatch> {
     const patches: ServerValsPatch = {
@@ -22,7 +21,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
         for (const season of getConfig().activeYears) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
-            const { mean, stdev } = getDistributionDataOrDefault(stat.property, season);
+            const { mean, stdev } = getDistributionData(stat.property, season) ?? { mean: 0, stdev: 1 };
             const value: number | null = statValue === undefined ? null : stat.value(statValue);
             const zScore: number | null = value == null ? null : stat.property.invert === true ? (mean - value / stdev) : (value - mean) / stdev;
             const percentile: number | null = zScore === null ? null : clamp(zScoreToPercentile(zScore), 1, 100);

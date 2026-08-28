@@ -2,6 +2,7 @@ import {rerunStatcastDataCalculations} from "@/utils/extension/statcast";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 import {getConfig} from "@/utils/extension/config.ts";
+import {rerunStatcastDataCalculationsHandler} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
 
 const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
 
@@ -74,12 +75,17 @@ function patchStatFormatting(src: string): string {
 
 export default defineBackground(() => {
     jsBundleMixin();
+    initMessageHandler();
     rerunStatcastDataCalculations();
 });
 
-const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
+function initMessageHandler() {
+    browser.runtime.onMessage.addListener(rerunStatcastDataCalculationsHandler);
+}
 
 function jsBundleMixin() {
+    const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
+
     browser.webRequest.onBeforeRequest.addListener(
         (details) => {
             const url = (details as any).originUrl as string;

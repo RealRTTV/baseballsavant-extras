@@ -2,6 +2,7 @@ import {onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/u
 import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/popup/textarea-helper.ts";
 import {rerunStatcastDataCalculations} from "@/utils/extension/statcast.ts";
+import {sendRerunStatcastDataCalculationsRequest} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
 
 export function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
@@ -26,5 +27,5 @@ SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
 
 function onConfig(config: ParsedConfig) {
     console.log(config.activeYears);
-    rerunStatcastDataCalculations();
+    sendRerunStatcastDataCalculationsRequest();
 }
