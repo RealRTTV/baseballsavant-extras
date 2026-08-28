@@ -2,9 +2,12 @@ import TOML, {type TomlTable} from "smol-toml";
 import type {PercentileProperty, PercentileSpec} from "@/utils/shared/stats";
 import {ALL_PERCENTILE_PROPERTIES, DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError} from "@/entrypoints/popup/textarea-helper.ts";
+import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
 
 export type ParsedConfig = {
     percentiles: PercentileSpec,
+    activeYears: number[],
+    activeStats: CustomStat<any>[], // todo
 }
 
 export const SAVANT_EXTRAS_CONFIG_STRING = storage.defineItem('local:config', {
@@ -28,6 +31,20 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined): Pe
 function parseConfig(toml: TomlTable): ParsedConfig {
     return {
         percentiles: parsePercentileConfig(toml['percentiles'] as Record<string, any>),
+        activeYears: (() => {
+            const entry = toml['active-years'] as Record<string, any>;
+            const includeCurrent = entry['include-current'] === true;
+            const currentYear = new Date().getFullYear();
+            const years = (entry['years'] ?? []) as number[];
+            if (includeCurrent && !years.includes(currentYear)) {
+                years.push(currentYear);
+            }
+            years.sort((a, b) => b - a); // descending
+            return years;
+        })(),
+        activeStats: [
+            FIRST_PITCH_STRIKE_CODE,
+        ],
     }
 }
 
@@ -80,10 +97,11 @@ function parsePercentileConfig(percentiles: Record<string, any>): PercentileSpec
 
 let CURRENT_CONFIG: ParsedConfig = parseConfig(TOML.parse(DEFAULT_CONFIG));
 
-export function onConfigWrite(toml_string: string) {
+export function onConfigWrite(toml_string: string): ParsedConfig {
     const toml = TOML.parse(toml_string);
     CURRENT_CONFIG = parseConfig(toml);
     SAVANT_EXTRAS_CONFIG_STRING.setValue(toml_string).catch(e => setTextareaConsoleError(e));
+    return CURRENT_CONFIG;
 }
 
 function initializeConfigCache() {

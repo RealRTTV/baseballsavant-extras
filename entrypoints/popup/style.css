@@ -94,7 +94,7 @@ hr.divider-line {
     background-color: rgb(from var(--error-red) r g b / 0.5);
 }
 
-#calculated-years {
+#cached-years {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -103,30 +103,29 @@ hr.divider-line {
     box-sizing: border-box;
 }
 
-.calculated-year {
+.cached-year {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.calculated-year-year {
+.cached-year-year {
     display: block;
     text-align: left;
     font-size: 12px;
-    background-color: var(--success-green);
     padding: 3px 6px;
     border-radius: 4px;
     border: 1px solid var(--ink-black);
 }
 
-.calculated-year-file-size {
+.cached-year-file-size {
     margin: 0 0 0 auto;
     display: block;
     text-align: right;
     font-size: 12px;
 }
 
-.calculated-year-purge {
+.cached-year-purge {
     margin: 0 0 0 8px;
     display: block;
     text-align: right;

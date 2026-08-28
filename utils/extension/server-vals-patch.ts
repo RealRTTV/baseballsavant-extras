@@ -1,13 +1,12 @@
-import {ENABLED_SEASONS, CALCULATED_STATS} from "@/utils/shared/statcast";
 import {clamp, zScoreToPercentile} from "@/utils/shared/math";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {openDB} from "idb";
 import {
     getDistributionDataOrDefault,
-    getSampleNumberFromDB,
     getStatFromDB,
     type StatcastDB
 } from "@/utils/extension/statcast";
+import {getConfig} from "@/utils/extension/config.ts";
 
 export async function createServerValsPatch(playerId: number): Promise<ServerValsPatch> {
     const patches: ServerValsPatch = {
@@ -19,8 +18,8 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
 
     const db = await openDB<StatcastDB>('statcast-data');
 
-    for (const stat of CALCULATED_STATS) {
-        for (const season of ENABLED_SEASONS) {
+    for (const stat of getConfig().activeStats) {
+        for (const season of getConfig().activeYears) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
             const { mean, stdev } = getDistributionDataOrDefault(stat.property, season);

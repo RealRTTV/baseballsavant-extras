@@ -1,7 +1,7 @@
 import {modifyPercentileSpec} from "@/utils/main/modify-percentile-spec";
 import {applyServerValsPatch} from "@/utils/main/server-vals-patch";
-import {CALCULATED_STATS} from "@/utils/shared/statcast";
 import {DisplayType, type PercentileSpec} from "@/utils/shared/stats";
+import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
 
 export default defineUnlistedScript(async () => {
     (globalThis as any).__savantExtras = {
@@ -23,9 +23,10 @@ export default defineUnlistedScript(async () => {
             withPercentOneDP: string[],   // 0.123 -> 12.3%
             withPercentZeroDP: string[],  // 0.123 -> 12%
             degrees: string[],            //    13 -> 13°
-            feetAndInches: string[]       //    13 -> 1'1"
+            feetAndInches: string[],      //    13 -> 1'1"
+            stats: CustomStat<any>[]
         ) {
-            for (const stat of CALCULATED_STATS) {
+            for (const stat of stats) {
                 const list: string[] = {
                     [DisplayType.ThreeDecimalPlaceNoIntegerPortion]: threeDPNoInt,
                     [DisplayType.ThreeDecimalPlace]: threeDP,

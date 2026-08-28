@@ -60,6 +60,15 @@ pitching = [
   "hard_hit_percent",
   "groundballs_percent",
   "fastball_extension"
+]
+
+[active-years]
+include-current = true
+years = []
+
+[active-stats]
+stats = [
+  'first-pitch-strike.js'
 ]`;
 
 export const ALL_PERCENTILE_PROPERTIES: PercentileProperty[] = [

@@ -1,4 +1,4 @@
-import {getStatcastData} from "@/utils/extension/statcast";
+import {rerunStatcastDataCalculations} from "@/utils/extension/statcast";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 import {getConfig} from "@/utils/extension/config.ts";
@@ -69,20 +69,15 @@ function patchStatFormatting(src: string): string {
         throw new Error(`stat formatting anchor missed`);
     }
 
-    return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')})${hit}`)
+    return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')},${JSON.stringify(getConfig().activeStats)})${hit}`)
 }
 
 export default defineBackground(() => {
-    sidePanel();
     jsBundleMixin();
-    getStatcastData().then(_ => {});
+    rerunStatcastDataCalculations();
 });
 
 const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
-
-function sidePanel() {
-    browser.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
-}
 
 function jsBundleMixin() {
     browser.webRequest.onBeforeRequest.addListener(
