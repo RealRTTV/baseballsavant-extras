@@ -45,7 +45,7 @@ export function rerunStatcastDataCalculations() {
     TASK_QUEUE_QUEUE.add(async () => {
         TASK_QUEUE.clear();
         await TASK_QUEUE.onIdle();
-        await TASK_QUEUE.addAll(await getAllTasks());
+        TASK_QUEUE.addAll(await getAllTasks()).then(_ => {});
 
         if (TASK_QUEUE_QUEUE.size === 0) {
             TASK_QUEUE.start();
