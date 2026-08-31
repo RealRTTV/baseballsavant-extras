@@ -15,7 +15,8 @@ import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/cus
 export type ParsedConfig = {
     percentiles: PercentileSpec,
     activeSeasons: number[],
-    activeStats: CustomStat<any>[], // todo
+    activeStats: CustomStat<any>[],
+    allStats: CustomStat<any>[],
 }
 
 export const SAVANT_EXTRAS_CONFIG_STRING = storage.defineItem('local:config', {
@@ -62,11 +63,13 @@ function parseConfig(toml: TomlTable): ParsedConfig {
         return seasons;
     })();
     const percentiles = parsePercentileConfig(toml['percentiles'] as Record<string, any>, activeStats);
+    const allStats = [FIRST_PITCH_STRIKE_CODE]; // todo
 
     return {
         percentiles: percentiles,
         activeSeasons: activeSeasons,
         activeStats: activeStats,
+        allStats: allStats,
     }
 }
 

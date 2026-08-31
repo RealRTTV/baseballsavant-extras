@@ -4,7 +4,7 @@ import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/
 import {rerunStatcastDataCalculations, type StatcastDB} from "@/utils/extension/statcast.ts";
 import {sendRerunStatcastDataCalculationsRequest} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
 import {openDB} from "idb";
-import {getFileSizeForSeason} from "@/utils/extension/statcast-helper.ts";
+import {getCachedSeasons, getFileSizeForSeason} from "@/utils/extension/statcast-helper.ts";
 import {createCalculatedSeason} from "@/entrypoints/popup/html-generation.ts";
 
 export function onConfigInput(textarea: HTMLTextAreaElement) {
@@ -31,19 +31,22 @@ SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
 function onConfig(_config: ParsedConfig) {
     sendRerunStatcastDataCalculationsRequest();
 
-    updateCachedSeasons().catch(console.error);
+    // updateCachedSeasons(false).catch(console.error);
 }
 
-async function updateCachedSeasons() {
+async function updateCachedSeasons(fetchFileSizes: boolean) {
     const db = await openDB<StatcastDB>('statcast-data');
+    const seasons = await getCachedSeasons(db);
+    seasons.sort((a, b) => b - a);
 
     const cachedSeasons: HTMLDivElement = document.querySelector('div#cached-seasons')! as HTMLDivElement;
     const children: HTMLElement[] = [];
-    for (const season of getConfig().activeSeasons) {
-        const fileSize = await getFileSizeForSeason(season, db);
+    for (const season of seasons) {
+        const fileSize = fetchFileSizes ? await getFileSizeForSeason(season, db) : undefined;
         children.push(createCalculatedSeason(season, fileSize));
     }
     cachedSeasons.replaceChildren(...children);
 }
 
-setInterval(updateCachedSeasons, 1000);
+await updateCachedSeasons(false);
+setInterval(() => updateCachedSeasons(true), 1000);

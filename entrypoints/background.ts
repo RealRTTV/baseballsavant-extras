@@ -2,7 +2,8 @@ import {rerunStatcastDataCalculations} from "@/utils/extension/statcast";
 import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 import {getConfig} from "@/utils/extension/config.ts";
-import {rerunStatcastDataCalculationsHandler} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
+import {rerunStatcastDataCalculationsRequestHandler} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
+import {purgeStatcastSeasonRequestHandler} from "@/utils/shared/messages/purge-statcast-season.ts";
 
 function isCorrectJSFile(contents: string): boolean {
     const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
@@ -80,7 +81,8 @@ export default defineBackground(() => {
 });
 
 function initMessageHandler() {
-    browser.runtime.onMessage.addListener(rerunStatcastDataCalculationsHandler);
+    browser.runtime.onMessage.addListener(rerunStatcastDataCalculationsRequestHandler);
+    browser.runtime.onMessage.addListener(purgeStatcastSeasonRequestHandler);
 }
 
 function jsBundleMixin() {

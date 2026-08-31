@@ -135,6 +135,12 @@ hr.divider-line {
     border-radius: 4px;
     color: var(--error-red);
     border: 1px solid var(--error-red);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cached-season-purge:hover {
+    background-color: rgb(from var(--error-red) r g b / 0.5);
 }
 
 #custom-stats-entries {
