@@ -9,7 +9,7 @@ import * as PITCHING_VALUE from "@/utils/shared/stats/pitcher_value.ts";
 import * as PITCHING_ONLY from "@/utils/shared/stats/pitching.ts";
 import type {PercentileProperty, PercentileSpec} from "@/utils/shared/stats";
 import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
-import {setTextareaConsoleError} from "@/entrypoints/popup/textarea-helper.ts";
+import {setTextareaConsoleError} from "@/entrypoints/sidepanel/textarea-helper.ts";
 import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
 
 export type ParsedConfig = {

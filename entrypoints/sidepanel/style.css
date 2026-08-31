@@ -13,11 +13,15 @@
 }
 
 body {
-    width: 240px;
-    flex: none;
+    width: 100vw;
+    height: 100vh;
+}
+
+.section-border {
+    margin: 8px;
     border: 1px solid var(--ink-black);
-    padding: 8px;
     border-radius: 8px;
+    padding: 8px;
 }
 
 .section-header {
@@ -54,8 +58,8 @@ hr.divider-line {
     resize: vertical;
     width: 100%;
     box-sizing: border-box;
-    min-height: 100px;
-    max-height: 200px;
+    min-height: 200px;
+    max-height: 400px;
     outline: none;
 }
 
@@ -64,6 +68,11 @@ hr.divider-line {
     background: var(--dark-gray);
     border-radius: 8px;
     min-height: calc(24px * 5 + 8px * 2 + 8px * 4);
+}
+
+#custom-stats.is-dragging {
+    /* change to svg stripe color */
+    background-color: var(--success-green);
 }
 
 #custom-stats-svg {

@@ -1,11 +1,11 @@
 import {getConfig, onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/extension/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
-import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/popup/textarea-helper.ts";
+import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/sidepanel/textarea-helper.ts";
 import {rerunStatcastDataCalculations, type StatcastDB} from "@/utils/extension/statcast.ts";
 import {sendRerunStatcastDataCalculationsRequest} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/utils/extension/statcast-helper.ts";
-import {createCalculatedSeason} from "@/entrypoints/popup/html-generation.ts";
+import {createCalculatedSeason} from "@/entrypoints/sidepanel/html-generation.ts";
 
 export function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
@@ -30,8 +30,24 @@ SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
 
 function onConfig(_config: ParsedConfig) {
     sendRerunStatcastDataCalculationsRequest();
+}
 
-    // updateCachedSeasons(false).catch(console.error);
+function setupDragAndDrop() {
+    const customStats: HTMLDivElement = document.querySelector('div#custom-stats')!;
+    customStats.addEventListener('dragover', e => {
+        e.preventDefault();
+        customStats.classList.add('is-dragging');
+    });
+    customStats.addEventListener('dragleave', e => {
+        e.preventDefault();
+        customStats.classList.remove('is-dragging');
+    })
+    customStats.addEventListener('drop', e => {
+        e.preventDefault();
+        customStats.classList.remove('is-dragging');
+        const files = e.dataTransfer?.files!;
+        console.log(files);
+    })
 }
 
 async function updateCachedSeasons(fetchFileSizes: boolean) {
@@ -48,5 +64,7 @@ async function updateCachedSeasons(fetchFileSizes: boolean) {
     cachedSeasons.replaceChildren(...children);
 }
 
+setupDragAndDrop();
 await updateCachedSeasons(false);
+await updateCachedSeasons(true);
 setInterval(() => updateCachedSeasons(true), 1000);

@@ -25,13 +25,12 @@ export type PercentileProperty = {
 
     /** Means that lower is better */
     invert?: boolean,
-
-    // todo, more here
 };
 
 export type ExtendedPercentileProperty = PercentileProperty & {
     display_type: DisplayType,
 
+    // todo: redo to a class hierarchy with a qualification_threshold(byPlayer: Record<number, T>): number. with an impl for NumeratorDenominatorCustomStat that 0.25 * Math.max(...byPlayer.map(player => player.denominator))
     qualification_threshold: number,
 };
 

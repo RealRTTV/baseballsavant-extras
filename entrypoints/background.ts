@@ -3,7 +3,13 @@ import type {ServerValsPatch} from "@/utils/shared/server-vals-patch";
 import {createServerValsPatch} from "@/utils/extension/server-vals-patch";
 import {getConfig} from "@/utils/extension/config.ts";
 import {rerunStatcastDataCalculationsRequestHandler} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
-import {purgeStatcastSeasonRequestHandler} from "@/utils/shared/messages/purge-statcast-season.ts";
+
+export default defineBackground(() => {
+    jsBundleMixin();
+    initMessageHandler();
+    setupSidePanel();
+    rerunStatcastDataCalculations();
+});
 
 function isCorrectJSFile(contents: string): boolean {
     const MUST_CONTAIN: string[] = ['hard_hit_percent', 'batterValue'];
@@ -74,15 +80,18 @@ function patchStatFormatting(src: string): string {
     return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')},${JSON.stringify(getConfig().activeStats)})${hit}`)
 }
 
-export default defineBackground(() => {
-    jsBundleMixin();
-    initMessageHandler();
-    rerunStatcastDataCalculations();
-});
-
 function initMessageHandler() {
     browser.runtime.onMessage.addListener(rerunStatcastDataCalculationsRequestHandler);
-    browser.runtime.onMessage.addListener(purgeStatcastSeasonRequestHandler);
+}
+
+function setupSidePanel() {
+    if (import.meta.env.FIREFOX) {
+        browser.browserAction.onClicked.addListener(() => {
+            (browser as any).sidebarAction.toggle();
+        })
+    } else {
+        browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(e => console.error("setPanelBehavior failed", e));
+    }
 }
 
 function jsBundleMixin() {
