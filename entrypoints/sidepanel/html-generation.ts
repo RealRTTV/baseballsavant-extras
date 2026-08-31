@@ -20,7 +20,7 @@ export function createCalculatedSeason(season: number, file_size?: number): HTML
 <span class="cached-season-purge">Purge</span>
     `;
     const purgeButton: HTMLSpanElement = div.querySelector('span.cached-season-purge')!;
-    purgeButton.addEventListener('mouseup', async () => await onPurge(season, div))
+    purgeButton.addEventListener('mousedown', async () => await onPurge(season, div))
     return div;
 }
 
