@@ -1,7 +1,6 @@
 import {modifyPercentileSpec} from "@/utils/main/modify-percentile-spec";
 import {applyServerValsPatch} from "@/utils/main/server-vals-patch";
-import {DisplayType, type PercentileSpec} from "@/utils/shared/stats";
-import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
+import {DisplayType, type ExtendedPercentileProperty, type PercentileSpec} from "@/utils/shared/stats";
 
 export default defineUnlistedScript(async () => {
     (globalThis as any).__savantExtras = {
@@ -24,7 +23,7 @@ export default defineUnlistedScript(async () => {
             withPercentZeroDP: string[],  // 0.123 -> 12%
             degrees: string[],            //    13 -> 13°
             feetAndInches: string[],      //    13 -> 1'1"
-            stats: CustomStat<any>[]
+            stats: ExtendedPercentileProperty[]
         ) {
             for (const stat of stats) {
                 const list: string[] = {
@@ -37,9 +36,9 @@ export default defineUnlistedScript(async () => {
                     [DisplayType.WithPercentZeroDecimalPlaces]: withPercentZeroDP,
                     [DisplayType.Degrees]: degrees,
                     [DisplayType.FeetAndInches]: feetAndInches,
-                }[stat.property.display_type] ?? [];
+                }[stat.display_type] ?? [];
 
-                list.push(stat.property.value);
+                list.push(stat.value);
             }
         }
     };

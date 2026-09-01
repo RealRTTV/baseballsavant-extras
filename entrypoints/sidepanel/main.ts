@@ -42,12 +42,18 @@ function setupDragAndDrop() {
         e.preventDefault();
         customStats.classList.remove('is-dragging');
     })
-    customStats.addEventListener('drop', e => {
+    customStats.addEventListener('drop', async e => {
         e.preventDefault();
         customStats.classList.remove('is-dragging');
         const files = e.dataTransfer?.files!;
-        console.log(files);
+        for (const file of files) {
+            console.log(await file.text());
+        }
     })
+}
+
+async function loadCustomStats() {
+
 }
 
 async function updateCachedSeasons(fetchFileSizes: boolean) {
@@ -65,6 +71,6 @@ async function updateCachedSeasons(fetchFileSizes: boolean) {
 }
 
 setupDragAndDrop();
-await updateCachedSeasons(false);
-await updateCachedSeasons(true);
+loadCustomStats().then(_ => {});
+updateCachedSeasons(false).then(_ => updateCachedSeasons(true));
 setInterval(() => updateCachedSeasons(true), 1000);

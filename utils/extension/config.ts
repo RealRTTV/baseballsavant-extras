@@ -10,7 +10,8 @@ import * as PITCHING_ONLY from "@/utils/shared/stats/pitching.ts";
 import type {PercentileProperty, PercentileSpec} from "@/utils/shared/stats";
 import {DEFAULT_CONFIG} from "@/utils/extension/config-consts.ts";
 import {setTextareaConsoleError} from "@/entrypoints/sidepanel/textarea-helper.ts";
-import {type CustomStat, FIRST_PITCH_STRIKE_CODE} from "@/utils/shared/stats/custom_stats";
+import {type CustomStat} from "@/utils/shared/stats/custom_stats";
+import {ALL_REGISTERED_CUSTOM_STATS} from "@/utils/extension/custom-stats.ts";
 
 export type ParsedConfig = {
     percentiles: PercentileSpec,
@@ -35,13 +36,13 @@ export const ALL_PERCENTILE_PROPERTIES: (activeStats: CustomStat<any>[]) => Perc
     ...activeStats.map(stat => stat.property),
 ];
 
-function mapValueStringsToPercentileProperties(values: string[] | undefined, newlyActiveStats: CustomStat<any>[]): PercentileProperty[] {
+function mapValueStringsToPercentileProperties(values: string[] | undefined, allStats: CustomStat<any>[]): PercentileProperty[] {
     if (values === undefined || !Array.isArray(values) || values.some(v => typeof v !== 'string')) {
         throw new Error(`percentile properties category must be an array of strings, got ${typeof values}`);
     }
 
     return values.map(value => {
-        const match = ALL_PERCENTILE_PROPERTIES(newlyActiveStats).find(p => p.value === value);
+        const match = ALL_PERCENTILE_PROPERTIES(allStats).find(p => p.value === value);
         if (match === undefined) {
             throw new Error(`unknown percentile property ${value}`);
         }
@@ -50,7 +51,8 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, new
 }
 
 function parseConfig(toml: TomlTable): ParsedConfig {
-    const activeStats: CustomStat<any>[] = [ FIRST_PITCH_STRIKE_CODE ];
+    const allStats: CustomStat<any>[] = ALL_REGISTERED_CUSTOM_STATS;
+    const activeStats: CustomStat<any>[] = ((toml['active-stats'] as any)['stats'] as string[]).map(name => allStats.find(stat => stat.property.value === name)!);
     const activeSeasons = (() => {
         const entry = toml['active-seasons'] as Record<string, any>;
         const includeCurrent = entry['include-current'] === true;
@@ -62,8 +64,7 @@ function parseConfig(toml: TomlTable): ParsedConfig {
         seasons.sort((a, b) => b - a); // descending
         return seasons;
     })();
-    const percentiles = parsePercentileConfig(toml['percentiles'] as Record<string, any>, activeStats);
-    const allStats = [FIRST_PITCH_STRIKE_CODE]; // todo
+    const percentiles = parsePercentileConfig(toml['percentiles'] as Record<string, any>, allStats);
 
     return {
         percentiles: percentiles,
@@ -73,47 +74,47 @@ function parseConfig(toml: TomlTable): ParsedConfig {
     }
 }
 
-function parsePercentileConfig(percentiles: Record<string, any>, newlyActiveStats: CustomStat<any>[]): PercentileSpec {
+function parsePercentileConfig(percentiles: Record<string, any>, allStats: CustomStat<any>[]): PercentileSpec {
     return {
         batterValue: {
             title: "Value",
-            props: mapValueStringsToPercentileProperties(percentiles['batter-value'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['batter-value'], allStats),
             image: "slider-trophy.png",
             altImage: "Trophy",
         },
         batting: {
             title: "Batting",
-            props: mapValueStringsToPercentileProperties(percentiles['batting'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['batting'], allStats),
             image: "slider-batter.png",
             altImage: "Batter",
         },
         catching: {
             title: "Catching",
-            props: mapValueStringsToPercentileProperties(percentiles['catching'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['catching'], allStats),
             image: "slider-catcher.png",
             altImage: "Catcher",
         },
         fielding: {
             title: "Fielding",
-            props: mapValueStringsToPercentileProperties(percentiles['fielding'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['fielding'], allStats),
             image: "slider-fielder.png",
             altImage: "Fielder",
         },
         running: {
             title: "Running",
-            props: mapValueStringsToPercentileProperties(percentiles['running'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['running'], allStats),
             image: "slider-runner.png",
             altImage: "Running",
         },
         pitcherValue: {
             title: "Value",
-            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], allStats),
             image: "slider-trophy.png",
             altImage: "Trophy",
         },
         pitching: {
             title: "Pitching",
-            props: mapValueStringsToPercentileProperties(percentiles['pitching'], newlyActiveStats),
+            props: mapValueStringsToPercentileProperties(percentiles['pitching'], allStats),
             image: "slider-pitcher.png",
             altImage: "Pitching",
         },

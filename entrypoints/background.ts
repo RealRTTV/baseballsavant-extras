@@ -77,7 +77,7 @@ function patchStatFormatting(src: string): string {
         throw new Error(`stat formatting anchor missed`);
     }
 
-    return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')},${JSON.stringify(getConfig().activeStats)})${hit}`)
+    return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')},${JSON.stringify(getConfig().activeStats.map(stat => stat.property))})${hit}`)
 }
 
 function initMessageHandler() {
