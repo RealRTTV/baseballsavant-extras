@@ -1,3 +1,0 @@
-[workspace]
-members = ["shared", "scripts/*"]
-resolver = "3"

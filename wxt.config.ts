@@ -2,20 +2,20 @@ import {defineConfig} from 'wxt';
 import {bundleCustomStatsPlugin} from './build-scripts/bundle-custom-stats.ts';
 
 export default defineConfig({
-    manifestVersion: 3,
     vite: () => ({
         plugins: [bundleCustomStatsPlugin()],
     }),
     manifest: {
         content_security_policy: {
-            extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+            extension_pages: "script-src 'self' 'unsafe-eval'; object-src 'self'"
+        },
+        browser_specific_settings: {
+            gecko: {
+                id: "baseballsavant-extras@rttv.ca"
+            }
         },
         action: {},
-        optional_permissions: [
-            'userScripts',
-        ],
         permissions: [
-            'userScripts',
             'storage',
             'webRequest',
             'webRequestBlocking',

@@ -1,11 +1,10 @@
 import {rerunStatcastDataCalculations} from "@/entrypoints/background/statcast";
 import {isRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {initBundleMixin} from "@/entrypoints/background/savant-bundle-mixin.ts";
-import {initCustomStatHandlers} from "@/entrypoints/background/custom-stat-handler.ts";
 
 export default defineBackground(() => {
+    console.log(new Function("return 'hi mom'")());
     initMessageHandler();
-    initCustomStatHandlers().then(_ => {});
     initSidePanel();
     initBundleMixin();
     rerunStatcastDataCalculations();
