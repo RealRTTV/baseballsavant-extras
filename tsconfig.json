@@ -1,6 +1,7 @@
 {
   "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
   }
 }

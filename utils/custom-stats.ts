@@ -1,6 +1,6 @@
 import {type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
 import firstPitchStrikeFileContents from '@/.output/custom_stats/first-pitch-strike.js?raw';
-import {type ExtendedPercentileProperty, isExtendedPercentileProperty} from "@/utils/stats";
+import {type ExtendedPercentileProperty} from "@/utils/stats";
 
 type CustomStatFile = {
     src: string;
@@ -14,22 +14,21 @@ const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>(
     }
 });
 
-export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
-
 let LOADED_CUSTOM_STATS: CustomStat<any>[] = [];
+
+export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
 
 async function parseStorage(record: Record<string, CustomStatFile>) {
     const customStats: CustomStat<any>[] = [];
-    for (const [filename, { src }] of Object.entries(record)) {
+    for (const [_filename, { src }] of Object.entries(record)) {
         const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
         const moduleNamespace = await import(/* @vite-ignore */ objectURL);
         const values = Object.values(moduleNamespace);
         customStats.push(...values.filter(isCustomStat));
         URL.revokeObjectURL(objectURL);
     }
-    const properties = customStats.map(stat => stat.property);
     LOADED_CUSTOM_STATS = customStats;
-    LOADED_CUSTOM_STAT_PROPERTIES = properties;
+    LOADED_CUSTOM_STAT_PROPERTIES = customStats.map(stat => stat.property);
 }
 
 export async function refreshCustomStats() {

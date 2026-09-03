@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 // To parse this data:
 //
 //   import { Convert } from "./statcast_row";
