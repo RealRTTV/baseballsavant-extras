@@ -24,8 +24,6 @@
     "wxt": "^0.21.4"
   },
   "dependencies": {
-    "case-anything": "^3.1.2",
-    "comlink": "^4.4.2",
     "idb": "^8.0.3",
     "p-queue": "^9.3.3",
     "papaparse": "^5.5.4",
