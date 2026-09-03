@@ -21,3 +21,13 @@ export function setTextareaConsoleSuccess() {
         textarea.style.borderColor = `lightgreen`;
     }
 }
+
+export function enableLoadingAnimation(query: string) {
+    const element = document.querySelector(query);
+    element?.classList.add('is-enabled');
+}
+
+export function disableLoadingAnimation(query: string) {
+    const element = document.querySelector(query);
+    element?.classList.remove('is-enabled');
+}

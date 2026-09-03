@@ -8,7 +8,7 @@ import * as BASERUNNING from "@/utils/stats/baserunning.ts";
 import * as PITCHING_VALUE from "@/utils/stats/pitcher_value.ts";
 import * as PITCHING_ONLY from "@/utils/stats/pitching.ts";
 import type {ExtendedPercentileProperty, PercentileProperty, PercentileSpec} from "@/utils/stats";
-import {setTextareaConsoleError} from "@/entrypoints/sidepanel/textarea-helper.ts";
+import {setTextareaConsoleError} from "@/entrypoints/sidepanel/html-helper.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
 import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 

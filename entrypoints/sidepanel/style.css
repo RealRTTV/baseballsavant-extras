@@ -1,6 +1,7 @@
 @import url(config-textarea.css);
 @import url(custom-stats.css);
 @import url(cached-seasons.css);
+@import url(animation.css);
 
 :root {
     font-family: 'Roboto', sans-serif;
@@ -23,10 +24,14 @@ body {
 }
 
 .section-border {
+    --border-width: 1px;
+    --border-radius: 8px;
     margin: 8px;
-    border: 1px solid var(--ink-black);
-    border-radius: 8px;
+    /*border: var(--border-width) solid var(--ink-black);*/
+    /*border-radius: var(--border-radius);*/
     padding: 8px;
+    position: relative;
+    background: white;
 }
 
 .section-header {

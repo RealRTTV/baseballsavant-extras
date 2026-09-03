@@ -1,9 +1,13 @@
-import {rerunStatcastDataCalculations} from "@/entrypoints/background/statcast";
+import {
+    rerunStatcastDataCalculations,
+    CURRENT_TASK_QUEUE_STATE
+} from "@/entrypoints/background/statcast";
 import {isRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {initBundleMixin} from "@/entrypoints/background/savant-bundle-mixin.ts";
 import {isRefreshCustomStats} from "@/utils/messages/refresh-custom-stats.ts";
 import {refreshCustomStats} from "@/utils/custom-stats.ts";
 import {initConfig} from "@/utils/config.ts";
+import {isStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 
 export default defineBackground({
     main() {
@@ -24,6 +28,8 @@ function initMessageHandler() {
             rerunStatcastDataCalculations();
         } else if (isRefreshCustomStats(message)) {
             await refreshCustomStats();
+        } else if (isStatcastCalculationsState(message)) {
+            return CURRENT_TASK_QUEUE_STATE;
         }
     });
 }

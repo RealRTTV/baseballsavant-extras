@@ -7,6 +7,8 @@ import {distributionData, getCustomStatForName} from "@/utils/custom-stats.ts";
 const TASK_QUEUE_QUEUE = new PQueue({ concurrency: 1 });
 const TASK_QUEUE = new PQueue({ concurrency: 1 });
 
+export let CURRENT_TASK_QUEUE_STATE: 'idle' | 'downloading' | 'calculating' = 'idle';
+
 /**
  * A queue for a queue (a little unnecessary)
  *
@@ -42,6 +44,7 @@ export function rerunStatcastDataCalculations() {
     TASK_QUEUE_QUEUE.add(async () => {
         TASK_QUEUE.clear();
         await TASK_QUEUE.onIdle();
+        CURRENT_TASK_QUEUE_STATE = 'idle';
         TASK_QUEUE.addAll(
             (await getAllTasks())
                 .map(task => async () => task()
@@ -55,12 +58,15 @@ export function rerunStatcastDataCalculations() {
     }).then(_ => {});
 }
 
-async function getAllTasks() {
+async function getAllTasks(): Promise<(() => Promise<void>)[]> {
     const db = await createDB();
 
     return [
+        async () => { CURRENT_TASK_QUEUE_STATE = 'downloading' },
         ...await createCacheStatcastDataTasks(db),
+        async () => { CURRENT_TASK_QUEUE_STATE = 'calculating' },
         ...createCalculateStatsTasks(db),
+        async () => { CURRENT_TASK_QUEUE_STATE = 'idle'},
     ];
 }
 
