@@ -3,7 +3,7 @@ import {readdir} from 'node:fs/promises';
 import {join, relative, resolve} from 'node:path';
 
 async function getCustomStatPaths() {
-    const entries = await readdir("utils/shared/stats/custom_stats", { recursive: true, withFileTypes: true });
+    const entries = await readdir("utils/stats/custom_stats", { recursive: true, withFileTypes: true });
     const modulePaths = [];
 
     for (const entry of entries) {
@@ -18,7 +18,7 @@ async function getCustomStatPaths() {
 }
 
 async function bundleEntry(srcPath: string) {
-    const outputFileName = relative("utils/shared/stats/custom_stats", srcPath).replace(/\.ts$/, '');
+    const outputFileName = relative("utils/stats/custom_stats", srcPath).replace(/\.ts$/, '');
 
     await build({
         configFile: false,

@@ -1,14 +1,14 @@
-import { prettyPrintFileSize } from "@/utils/shared/files";
-import {purgeSeason} from "@/utils/extension/statcast-helper.ts";
-import type {StatcastDB} from "@/utils/extension/statcast.ts";
+import { prettyPrintFileSize } from "@/utils/files";
+import {purgeSeason} from "@/entrypoints/background/statcast-helper.ts";
+import type {StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {openDB} from "idb";
-import {sendRerunStatcastDataCalculationsRequest} from "@/utils/shared/messages/rerun-statcast-data-calculations.ts";
+import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 
 async function onPurge(season: number, div: HTMLDivElement): Promise<void> {
     const db = await openDB<StatcastDB>('statcast-data');
     await purgeSeason(season, db);
     div.remove();
-    sendRerunStatcastDataCalculationsRequest();
+    requestRerunStatcastDataCalculations();
 }
 
 export function createCalculatedSeason(season: number, file_size?: number): HTMLDivElement {
