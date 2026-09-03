@@ -9,8 +9,8 @@ import * as PITCHING_VALUE from "@/utils/stats/pitcher_value.ts";
 import * as PITCHING_ONLY from "@/utils/stats/pitching.ts";
 import type {ExtendedPercentileProperty, PercentileProperty, PercentileSpec} from "@/utils/stats";
 import {setTextareaConsoleError} from "@/entrypoints/sidepanel/textarea-helper.ts";
-import {ALL_REGISTERED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
+import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 
 export type ParsedConfig = {
     percentiles: PercentileSpec,
@@ -50,7 +50,7 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, all
 }
 
 function parseConfig(toml: TomlTable): ParsedConfig {
-    const allStats: ExtendedPercentileProperty[] = ALL_REGISTERED_CUSTOM_STAT_PROPERTIES;
+    const allStats: ExtendedPercentileProperty[] = LOADED_CUSTOM_STAT_PROPERTIES;
     const activeStats: ExtendedPercentileProperty[] = ((toml['active-stats'] as any)['stats'] as string[]).map(name => allStats.find(stat => stat.value === name)!);
     const activeSeasons = (() => {
         const entry = toml['active-seasons'] as Record<string, any>;

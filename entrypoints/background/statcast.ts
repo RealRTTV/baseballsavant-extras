@@ -1,7 +1,8 @@
 import {type DBSchema, type IDBPDatabase, openDB} from 'idb';
 import PQueue from "p-queue";
 import {getConfig} from "@/utils/config.ts";
-import {getDayFromURL, seasonDates} from "@/entrypoints/background/statcast-helper.ts";
+import {getDayFromDB, getDayFromURL, seasonDates} from "@/entrypoints/background/statcast-helper.ts";
+import {distributionData, getCustomStatForName} from "@/utils/custom-stats.ts";
 
 const TASK_QUEUE_QUEUE = new PQueue({ concurrency: 1 });
 const TASK_QUEUE = new PQueue({ concurrency: 1 });
@@ -85,8 +86,6 @@ export type StatCache<T> = {
 
 export const DISTRIBUTION_METRICS: Record<string, [number, number]> = {};
 
-export const VALUE_TABLE: Record<string, Map<object, number>> = {};
-
 async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
     return openDB<StatcastDB>('statcast-data', 1, {
         upgrade(db) {
@@ -111,21 +110,21 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
         for (const season of getConfig().activeSeasons) {
             tasks.push(async () => {
                 console.log(`Calculating ${stat.value} for ${season}...`);
+                const statInstance = getCustomStatForName(stat.value)!;
 
-                // const cache: StatCache<any> = (await db.get('stats', [season, stat.value])) ?? { cachedDates: [], byPlayer: {} };
-                //
-                // const newDates = seasonDates(season).filter(date => !cache.cachedDates.includes(date)).toArray();
-                //
-                // for (const date of newDates) {
-                //     const data_string = await getDayFromDB(date, db);
-                //     cache.byPlayer = await requestApplyRowsForDate(data_string, cache.byPlayer, stat.value);
-                // }
-                // cache.cachedDates.push(...newDates);
-                //
-                // DISTRIBUTION_METRICS[`${season}:${stat.value}`] = await requestDistributionData(stat.value, cache.byPlayer);
-                // VALUE_TABLE[`${season}:${stat.value}`] = await requestValueData(stat.value, cache.byPlayer);
-                //
-                // await db.put('stats', cache, [season, stat.value]);
+                const cache: StatCache<any> = (await db.get('stats', [season, stat.value])) ?? { cachedDates: [], byPlayer: {} };
+
+                const newDates = seasonDates(season).filter(date => !cache.cachedDates.includes(date)).toArray();
+
+                for (const date of newDates) {
+                    const data = await getDayFromDB(date, db);
+                    statInstance.apply(data.data, cache.byPlayer);
+                }
+                cache.cachedDates.push(...newDates);
+
+                DISTRIBUTION_METRICS[`${season}:${stat.value}`] = distributionData(statInstance, cache.byPlayer);
+
+                await db.put('stats', cache, [season, stat.value]);
                 console.log(`Calculated ${stat.value} for ${season}`);
             });
         }

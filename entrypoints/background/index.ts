@@ -1,9 +1,10 @@
 import {rerunStatcastDataCalculations} from "@/entrypoints/background/statcast";
 import {isRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {initBundleMixin} from "@/entrypoints/background/savant-bundle-mixin.ts";
+import {isRefreshCustomStats} from "@/utils/messages/refresh-custom-stats.ts";
+import {refreshCustomStats} from "@/utils/custom-stats.ts";
 
 export default defineBackground(() => {
-    console.log(new Function("return 'hi mom'")());
     initMessageHandler();
     initSidePanel();
     initBundleMixin();
@@ -11,10 +12,11 @@ export default defineBackground(() => {
 });
 
 function initMessageHandler() {
-    // rerunStatcastDataCalculations
-    browser.runtime.onMessage.addListener(message => {
+    browser.runtime.onMessage.addListener(async message => {
         if (isRerunStatcastDataCalculations(message)) {
             rerunStatcastDataCalculations();
+        } else if (isRefreshCustomStats(message)) {
+            await refreshCustomStats();
         }
     });
 }
