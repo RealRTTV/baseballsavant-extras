@@ -63,8 +63,6 @@ export function isPercentileProperty(property: any): property is PercentilePrope
 
 export function isExtendedPercentileProperty(property: PercentileProperty): property is ExtendedPercentileProperty {
     return isPercentileProperty(property) &&
-        typeof (property as any).approx_mean === 'number' &&
-        typeof (property as any).approx_stdev === 'number' &&
         typeof (property as any).display_type === 'number' &&
         typeof (property as any).qualification_threshold === 'number';
 }

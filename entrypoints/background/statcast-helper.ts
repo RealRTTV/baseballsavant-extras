@@ -23,14 +23,9 @@ export function* seasonDates(season: number): Generator<string> {
     }
 }
 
-export function getDistributionData(stat: PercentileProperty, season: number): { mean: number, stdev: number } | undefined {
-    const result = DISTRIBUTION_METRICS[`${season}:${stat.value}`];
-    if (result === undefined) {
-        return undefined;
-    } else {
-        const [mean, stdev] = result;
-        return { mean, stdev };
-    }
+export function getDistributionData(stat: PercentileProperty, season: number): { mean: number, stdev: number } {
+    const [mean, stdev] = DISTRIBUTION_METRICS[`${season}:${stat.value}`] ?? [0, 1];
+    return { mean, stdev };
 }
 
 export async function getStatFromDB(stat: ExtendedPercentileProperty, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<object | undefined> {

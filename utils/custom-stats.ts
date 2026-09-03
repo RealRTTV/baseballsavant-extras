@@ -1,6 +1,6 @@
-import type {CustomStat} from "@/utils/stats/custom_stats";
+import {type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
 import firstPitchStrikeFileContents from '@/.output/custom_stats/first-pitch-strike.js?raw';
-import type {ExtendedPercentileProperty} from "@/utils/stats";
+import {type ExtendedPercentileProperty, isExtendedPercentileProperty} from "@/utils/stats";
 
 type CustomStatFile = {
     src: string;
@@ -24,7 +24,7 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
         const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
         const moduleNamespace = await import(/* @vite-ignore */ objectURL);
         const values = Object.values(moduleNamespace);
-        console.log(filename, values);
+        customStats.push(...values.filter(isCustomStat));
         URL.revokeObjectURL(objectURL);
     }
     const properties = customStats.map(stat => stat.property);
@@ -33,12 +33,8 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
 }
 
 export async function refreshCustomStats() {
-    console.log('refreshing custom stats');
     await CUSTOM_STATS_STORAGE.getValue().then(parseStorage);
     CUSTOM_STATS_STORAGE.watch(parseStorage);
-    console.log('refreshed custom stats');
-    console.log(LOADED_CUSTOM_STAT_PROPERTIES);
-    console.log(LOADED_CUSTOM_STATS);
 }
 
 export function getCustomStatForName(name: string): CustomStat<any> | undefined {
@@ -53,5 +49,3 @@ export function distributionData<T extends object>(stat: CustomStat<T>, byPlayer
 
     return [mean, Math.sqrt(variance)];
 }
-
-await refreshCustomStats();

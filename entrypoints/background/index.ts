@@ -3,12 +3,19 @@ import {isRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-d
 import {initBundleMixin} from "@/entrypoints/background/savant-bundle-mixin.ts";
 import {isRefreshCustomStats} from "@/utils/messages/refresh-custom-stats.ts";
 import {refreshCustomStats} from "@/utils/custom-stats.ts";
+import {initConfig} from "@/utils/config.ts";
 
-export default defineBackground(() => {
-    initMessageHandler();
-    initSidePanel();
-    initBundleMixin();
-    rerunStatcastDataCalculations();
+export default defineBackground({
+    main() {
+        (async () => {
+            initMessageHandler();
+            await refreshCustomStats();
+            await initConfig();
+            initSidePanel();
+            initBundleMixin();
+            rerunStatcastDataCalculations();
+        })()
+    }
 });
 
 function initMessageHandler() {
@@ -27,6 +34,6 @@ function initSidePanel() {
             (browser as any).sidebarAction.toggle();
         })
     } else {
-        browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(e => console.error("setPanelBehavior failed", e));
+        browser.sidePanel.setPanelBehavior({openPanelOnActionClick: true}).catch(e => console.error("setPanelBehavior failed", e));
     }
 }

@@ -51,7 +51,6 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, all
 
 function parseConfig(toml: TomlTable): ParsedConfig {
     const allStats: ExtendedPercentileProperty[] = LOADED_CUSTOM_STAT_PROPERTIES;
-    console.log(allStats);
 
     const statStrings = (toml['active-stats'] as any)['stats'] as string[];
     const activeStats: ExtendedPercentileProperty[] = [];
@@ -131,7 +130,7 @@ function parsePercentileConfig(percentiles: Record<string, any>, allStats: Exten
     }
 }
 
-let CURRENT_CONFIG: ParsedConfig = parseConfig(TOML.parse(DEFAULT_CONFIG));
+let CURRENT_CONFIG: ParsedConfig | null = null;
 
 export function onConfigWrite(toml_string: string): ParsedConfig {
     const toml = TOML.parse(toml_string);
@@ -140,8 +139,8 @@ export function onConfigWrite(toml_string: string): ParsedConfig {
     return CURRENT_CONFIG;
 }
 
-function initializeConfigCache() {
-    SAVANT_EXTRAS_CONFIG_STRING.getValue().then(toml_string => {
+export async function initConfig() {
+    await SAVANT_EXTRAS_CONFIG_STRING.getValue().then(toml_string => {
         CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
     }).catch(_ => {});
     SAVANT_EXTRAS_CONFIG_STRING.watch(toml_string => {
@@ -150,7 +149,5 @@ function initializeConfigCache() {
 }
 
 export function getConfig(): ParsedConfig {
-    return CURRENT_CONFIG;
+    return CURRENT_CONFIG!;
 }
-
-initializeConfigCache();

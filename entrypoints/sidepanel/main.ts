@@ -1,4 +1,4 @@
-import {onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/config.ts";
+import {initConfig, onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
 import {setTextareaConsoleError, setTextareaConsoleSuccess} from "@/entrypoints/sidepanel/textarea-helper.ts";
 import {type StatcastDB} from "@/entrypoints/background/statcast.ts";
@@ -6,10 +6,11 @@ import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statc
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason} from "@/entrypoints/sidepanel/html-generation.ts";
+import {refreshCustomStats} from "@/utils/custom-stats.ts";
 
-export async function onConfigInput(textarea: HTMLTextAreaElement) {
+export function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        const config = await onConfigWrite(textarea.value);
+        const config = onConfigWrite(textarea.value);
         onConfig(config);
         setTextareaConsoleSuccess();
     } catch (e: any) {
@@ -17,27 +18,8 @@ export async function onConfigInput(textarea: HTMLTextAreaElement) {
     }
 }
 
-SAVANT_EXTRAS_CONFIG_STRING.getValue().then(async CONFIG_STRING => {
-    const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
-    const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;
-
-    if (textarea !== null) {
-        textarea.value = CONFIG;
-        await onConfigInput(textarea);
-        textarea.addEventListener('input', async _ => onConfigInput(textarea));
-    }
-});
-
 function onConfig(_config: ParsedConfig) {
     requestRerunStatcastDataCalculations();
-}
-
-function initEnableUserScripts() {
-    const title = document.querySelector('#custom-stats-title')!;
-    title.addEventListener('mousedown', async () => {
-        console.log('Requesting user-scripts permission...');
-        await browser.permissions.request({ permissions: ['userScripts'] });
-    });
 }
 
 function initDragAndDrop() {
@@ -74,7 +56,20 @@ async function updateCachedSeasons(fetchFileSizes: boolean) {
     cachedSeasons.replaceChildren(...children);
 }
 
-initEnableUserScripts();
-initDragAndDrop();
-updateCachedSeasons(false).then(_ => updateCachedSeasons(true));
-setInterval(() => updateCachedSeasons(true), 1000);
+(async () => {
+    await refreshCustomStats();
+    SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
+        const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
+        const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;
+
+        if (textarea !== null) {
+            textarea.value = CONFIG;
+            onConfigInput(textarea);
+            textarea.addEventListener('input', _ => onConfigInput(textarea));
+        }
+    });
+    await initConfig();
+    initDragAndDrop();
+    updateCachedSeasons(false).then(_ => updateCachedSeasons(true));
+    setInterval(() => updateCachedSeasons(true), 1000);
+})()
