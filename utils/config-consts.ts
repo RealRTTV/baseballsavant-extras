@@ -58,5 +58,5 @@ seasons = []
 
 [active-stats]
 stats = [
-  'first-pitch-strike.js'
+  "first_pitch_strike"
 ]`;

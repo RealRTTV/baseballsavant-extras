@@ -7,7 +7,7 @@ export default defineConfig({
     }),
     manifest: {
         content_security_policy: {
-            extension_pages: "script-src 'self' 'unsafe-eval'; object-src 'self'"
+            extension_pages: "script-src 'self' 'unsafe-eval' blob:; object-src 'self'"
         },
         browser_specific_settings: {
             gecko: {

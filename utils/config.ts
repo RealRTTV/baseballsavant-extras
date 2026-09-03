@@ -51,7 +51,18 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, all
 
 function parseConfig(toml: TomlTable): ParsedConfig {
     const allStats: ExtendedPercentileProperty[] = LOADED_CUSTOM_STAT_PROPERTIES;
-    const activeStats: ExtendedPercentileProperty[] = ((toml['active-stats'] as any)['stats'] as string[]).map(name => allStats.find(stat => stat.value === name)!);
+    console.log(allStats);
+
+    const statStrings = (toml['active-stats'] as any)['stats'] as string[];
+    const activeStats: ExtendedPercentileProperty[] = [];
+    for (const stat of statStrings) {
+        const match = allStats.find(p => p.value === stat);
+        if (match === undefined) {
+            throw new Error(`no stat ${stat} exists.`);
+        }
+        activeStats.push(match);
+    }
+
     const activeSeasons = (() => {
         const entry = toml['active-seasons'] as Record<string, any>;
         const includeCurrent = entry['include-current'] === true;
@@ -132,7 +143,7 @@ export function onConfigWrite(toml_string: string): ParsedConfig {
 function initializeConfigCache() {
     SAVANT_EXTRAS_CONFIG_STRING.getValue().then(toml_string => {
         CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
-    });
+    }).catch(_ => {});
     SAVANT_EXTRAS_CONFIG_STRING.watch(toml_string => {
         CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
     })

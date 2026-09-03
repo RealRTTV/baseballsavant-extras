@@ -33,7 +33,12 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
 }
 
 export async function refreshCustomStats() {
-    CUSTOM_STATS_STORAGE.getValue().then(parseStorage);
+    console.log('refreshing custom stats');
+    await CUSTOM_STATS_STORAGE.getValue().then(parseStorage);
+    CUSTOM_STATS_STORAGE.watch(parseStorage);
+    console.log('refreshed custom stats');
+    console.log(LOADED_CUSTOM_STAT_PROPERTIES);
+    console.log(LOADED_CUSTOM_STATS);
 }
 
 export function getCustomStatForName(name: string): CustomStat<any> | undefined {
@@ -48,3 +53,5 @@ export function distributionData<T extends object>(stat: CustomStat<T>, byPlayer
 
     return [mean, Math.sqrt(variance)];
 }
+
+await refreshCustomStats();

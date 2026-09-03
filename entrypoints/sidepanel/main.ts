@@ -7,9 +7,9 @@ import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason} from "@/entrypoints/sidepanel/html-generation.ts";
 
-export function onConfigInput(textarea: HTMLTextAreaElement) {
+export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        const config = onConfigWrite(textarea.value);
+        const config = await onConfigWrite(textarea.value);
         onConfig(config);
         setTextareaConsoleSuccess();
     } catch (e: any) {
@@ -17,14 +17,14 @@ export function onConfigInput(textarea: HTMLTextAreaElement) {
     }
 }
 
-SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
+SAVANT_EXTRAS_CONFIG_STRING.getValue().then(async CONFIG_STRING => {
     const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
     const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;
 
     if (textarea !== null) {
         textarea.value = CONFIG;
-        onConfigInput(textarea);
-        textarea.addEventListener('input', _ => onConfigInput(textarea));
+        await onConfigInput(textarea);
+        textarea.addEventListener('input', async _ => onConfigInput(textarea));
     }
 });
 
