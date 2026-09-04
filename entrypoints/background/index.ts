@@ -9,17 +9,15 @@ import {refreshCustomStats} from "@/utils/custom-stats.ts";
 import {initConfig} from "@/utils/config.ts";
 import {isStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 
-export default defineBackground({
-    main() {
-        (async () => {
-            initMessageHandler();
-            await refreshCustomStats();
-            await initConfig();
-            initSidePanel();
-            initBundleMixin();
-            rerunStatcastDataCalculations();
-        })()
-    }
+export default defineBackground(() => {
+    (async () => {
+        initMessageHandler();
+        await refreshCustomStats();
+        await initConfig();
+        initSidePanel();
+        initBundleMixin();
+        rerunStatcastDataCalculations();
+    })()
 });
 
 function initMessageHandler() {

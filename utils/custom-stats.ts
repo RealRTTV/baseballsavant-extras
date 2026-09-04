@@ -6,7 +6,7 @@ type CustomStatFile = {
     src: string;
 };
 
-const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
+export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
     fallback: {
         'first-pitch-strike.js': {
             src: firstPitchStrikeFileContents,
@@ -20,20 +20,36 @@ export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
 
 async function parseStorage(record: Record<string, CustomStatFile>) {
     const customStats: CustomStat<any>[] = [];
-    for (const [_filename, { src }] of Object.entries(record)) {
+    const statToFilenameMap: Record<string, string> = {};
+    for (const [filename, { src }] of Object.entries(record)) {
         const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
         const moduleNamespace = await import(/* @vite-ignore */ objectURL);
-        const values = Object.values(moduleNamespace);
-        customStats.push(...values.filter(isCustomStat));
+        const values = Object.values(moduleNamespace).filter(isCustomStat);
+        for (const value of values) {
+            if (statToFilenameMap[value.property.value] === undefined) {
+                statToFilenameMap[value.property.value] = filename;
+                customStats.push(value);
+            } else {
+                console.warn(`stat ${value.property.value} from ${filename} already loaded under ${statToFilenameMap[value.property.value]}`);
+            }
+        }
         URL.revokeObjectURL(objectURL);
     }
     LOADED_CUSTOM_STATS = customStats;
     LOADED_CUSTOM_STAT_PROPERTIES = customStats.map(stat => stat.property);
+
 }
 
 export async function refreshCustomStats() {
     await CUSTOM_STATS_STORAGE.getValue().then(parseStorage);
     CUSTOM_STATS_STORAGE.watch(parseStorage);
+}
+
+export async function removeCustomStatFile(filename: string) {
+    const value = await CUSTOM_STATS_STORAGE.getValue();
+    delete value[filename];
+    // watchers should run; no need to run parseStorage
+    await CUSTOM_STATS_STORAGE.setValue(value);
 }
 
 export function getCustomStatForName(name: string): CustomStat<any> | undefined {

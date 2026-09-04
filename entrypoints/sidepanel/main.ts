@@ -10,8 +10,8 @@ import {type StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
-import {createCalculatedSeason} from "@/entrypoints/sidepanel/html-generation.ts";
-import {refreshCustomStats} from "@/utils/custom-stats.ts";
+import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/sidepanel/html-generation.ts";
+import {CUSTOM_STATS_STORAGE, refreshCustomStats} from "@/utils/custom-stats.ts";
 import {isToggleLoadingAnimation} from "@/utils/messages/toggle-loading-animation.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 
@@ -38,7 +38,7 @@ function initDragAndDrop() {
     customStats.addEventListener('dragleave', e => {
         e.preventDefault();
         customStats.classList.remove('is-dragging');
-    })
+    });
     customStats.addEventListener('drop', async e => {
         e.preventDefault();
         customStats.classList.remove('is-dragging');
@@ -46,7 +46,15 @@ function initDragAndDrop() {
         for (const file of files) {
             console.log(await file.text());
         }
-    })
+    });
+
+    const customStatsEntries: HTMLDivElement = customStats.querySelector('div#custom-stats-entries')!;
+    CUSTOM_STATS_STORAGE.getValue().then(map => {
+        customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
+    });
+    CUSTOM_STATS_STORAGE.watch(map => {
+        customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
+    });
 }
 
 async function updateCachedSeasons(fetchFileSizes: boolean) {
@@ -64,14 +72,13 @@ async function updateCachedSeasons(fetchFileSizes: boolean) {
     cachedSeasons.replaceChildren(...children);
 
     const state = await statePromise;
+    disableLoadingAnimation('#cached-seasons-loading-animation');
+    disableLoadingAnimation('#custom-stats-loading-animation');
     if (state === 'idle') {
-        disableLoadingAnimation('#cached-seasons-loading-animation');
-        disableLoadingAnimation('#custom-stats-loading-animation');
+        // do nothing
     } else if (state === 'downloading') {
         enableLoadingAnimation('#cached-seasons-loading-animation');
-        disableLoadingAnimation('#custom-stats-loading-animation');
     } else {
-        disableLoadingAnimation('#cached-seasons-loading-animation');
         enableLoadingAnimation('#custom-stats-loading-animation');
     }
 }

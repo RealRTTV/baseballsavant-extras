@@ -53,10 +53,8 @@ pitching = [
 ]
 
 [active-seasons]
-include-current = true
+include-current = false
 seasons = []
 
 [active-stats]
-stats = [
-  "first_pitch_strike"
-]`;
+stats = []`;

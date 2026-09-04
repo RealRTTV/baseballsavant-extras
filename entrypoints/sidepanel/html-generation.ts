@@ -3,6 +3,7 @@ import {purgeSeason} from "@/entrypoints/background/statcast-helper.ts";
 import type {StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {openDB} from "idb";
 import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
+import {removeCustomStatFile} from "@/utils/custom-stats.ts";
 
 async function onPurge(season: number, div: HTMLDivElement): Promise<void> {
     const db = await openDB<StatcastDB>('statcast-data');
@@ -20,16 +21,18 @@ export function createCalculatedSeason(season: number, file_size?: number): HTML
 <span class="cached-season-purge">Purge</span>
     `;
     const purgeButton: HTMLSpanElement = div.querySelector('span.cached-season-purge')!;
-    purgeButton.addEventListener('mousedown', async () => await onPurge(season, div))
+    purgeButton.addEventListener('mouseup', async () => await onPurge(season, div))
     return div;
 }
 
-export function createCustomStatEntry(name: string): HTMLDivElement {
+export function createCustomStatsEntry(filename: string): HTMLDivElement {
     const div = document.createElement('div');
-    div.className = 'custom-stat-entry';
+    div.className = 'custom-stats-entry';
     div.innerHTML = `
-<span class="custom-stats-entry-name" title="${name}">${name}</span>
-<div class="delete-button">&times;</div>
+<span class="custom-stats-entry-name" title="${filename}">${filename}</span>
+<span class="delete-button">&times;</span>
     `;
+    const deleteButton: HTMLSpanElement = div.querySelector('span.delete-button')!;
+    deleteButton.addEventListener('mouseup', async () => await removeCustomStatFile(filename));
     return div;
 }

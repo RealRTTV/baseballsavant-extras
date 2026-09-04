@@ -139,12 +139,23 @@ export function onConfigWrite(toml_string: string): ParsedConfig {
     return CURRENT_CONFIG;
 }
 
+export function getDefaultConfig(): ParsedConfig {
+    return parseConfig(TOML.parse(DEFAULT_CONFIG));
+}
+
 export async function initConfig() {
     await SAVANT_EXTRAS_CONFIG_STRING.getValue().then(toml_string => {
         CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
-    }).catch(_ => {});
+    }).catch(e => {
+        console.error('Failed to parse config; falling back to default config', e);
+        CURRENT_CONFIG ??= getDefaultConfig();
+    });
     SAVANT_EXTRAS_CONFIG_STRING.watch(toml_string => {
-        CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
+        try {
+            CURRENT_CONFIG = parseConfig(TOML.parse(toml_string));
+        } catch (e) {
+            console.error('Failed to parse config', e);
+        }
     })
 }
 
