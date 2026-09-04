@@ -24,11 +24,7 @@
         <span id="config-textarea-console"></span>
         <textarea id="config-textarea"></textarea>
     </div>
-    <div class="section-border">
-        <svg class="section-border-loading-animation" preserveAspectRatio="none">
-            <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-            <rect id="custom-stats-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
-        </svg>
+    <div class="section-border section-border-border">
         <span class="section-header">Installed Custom Stats</span>
         <div id="custom-stats">
             <svg id="custom-stats-svg">
@@ -37,21 +33,33 @@
                       stroke-linecap="round"/>
             </svg>
             <div id="custom-stats-entries">
-                <div class="custom-stats-entry">
-                    <span class="custom-stats-entry-name" title="dummy.js">dummy.js</span>
-                    <div class="delete-button">&times;</div>
+                <div class="custom-stats-entry-wrapper">
+                    <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-color: var(--light-gray); --border-radius: 4px">
+                        <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
+                        <rect id="custom-stats-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
+                    </svg>
+                    <div class="custom-stats-entry">
+                        <span class="custom-stats-entry-name" title="dummy.js">dummy.js</span>
+                        <div class="delete-button">&times;</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="section-border">
-        <svg class="section-border-loading-animation" preserveAspectRatio="none">
-            <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-            <rect id="cached-seasons-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
-        </svg>
+    <div class="section-border section-border-border">
         <span class="section-header">Cached Seasons</span>
         <div id="cached-seasons">
-
+            <div class="cached-season">
+                <span class="cached-season-year">
+                    2026
+                    <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-radius: 4px">
+                        <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
+                        <rect id="cached-seasons-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
+                    </svg>
+                </span>
+                <span class="cached-season-file-size">- - - . - MB</span>
+                <span class="cached-season-purge">Purge</span>
+            </div>
         </div>
     </div>
 </body>

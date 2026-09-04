@@ -7,7 +7,7 @@ import {distributionData, getCustomStatForName} from "@/utils/custom-stats.ts";
 const TASK_QUEUE_QUEUE = new PQueue({ concurrency: 1 });
 const TASK_QUEUE = new PQueue({ concurrency: 1 });
 
-export let CURRENT_TASK_QUEUE_STATE: 'idle' | 'downloading' | 'calculating' = 'idle';
+export let CURRENT_TASK_QUEUE_STATE: 'idle' | { downloadingSeason: number } | { calculatingStat: string } = 'idle';
 
 /**
  * A queue for a queue (a little unnecessary)
@@ -62,11 +62,9 @@ async function getAllTasks(): Promise<(() => Promise<void>)[]> {
     const db = await createDB();
 
     return [
-        async () => { CURRENT_TASK_QUEUE_STATE = 'downloading' },
         ...await createCacheStatcastDataTasks(db),
-        async () => { CURRENT_TASK_QUEUE_STATE = 'calculating' },
         ...createCalculateStatsTasks(db),
-        async () => { CURRENT_TASK_QUEUE_STATE = 'idle'},
+        async () => { CURRENT_TASK_QUEUE_STATE = 'idle'; },
     ];
 }
 
@@ -105,6 +103,7 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
 async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
     const tasks = [];
     for (const season of getConfig().activeSeasons) {
+        tasks.push(async () => { CURRENT_TASK_QUEUE_STATE = { downloadingSeason: season } });
         tasks.push(...await createDayCacheTasks(season, db));
     }
     return tasks;
@@ -114,6 +113,7 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
     const tasks = [];
     for (const stat of getConfig().activeStats) {
         for (const season of getConfig().activeSeasons) {
+            tasks.push(async () => { CURRENT_TASK_QUEUE_STATE = { calculatingStat: stat.value } });
             tasks.push(async () => {
                 console.log(`Calculating ${stat.value} for ${season}...`);
                 const statInstance = getCustomStatForName(stat.value)!;

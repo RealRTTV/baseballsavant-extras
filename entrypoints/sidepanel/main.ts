@@ -1,19 +1,17 @@
 import {initConfig, onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
 import {
-    disableLoadingAnimation,
-    enableLoadingAnimation,
     setTextareaConsoleError,
     setTextareaConsoleSuccess
 } from "@/entrypoints/sidepanel/html-helper.ts";
-import {type StatcastDB} from "@/entrypoints/background/statcast.ts";
+import {CURRENT_TASK_QUEUE_STATE, type StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/sidepanel/html-generation.ts";
-import {CUSTOM_STATS_STORAGE, refreshCustomStats} from "@/utils/custom-stats.ts";
-import {isToggleLoadingAnimation} from "@/utils/messages/toggle-loading-animation.ts";
+import {CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAME_MAP} from "@/utils/custom-stats.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
+import {prettyPrintFileSize} from "@/utils/files.ts";
 
 export function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
@@ -57,46 +55,79 @@ function initDragAndDrop() {
     });
 }
 
+function getCachedSeasonForYear(cachedSeasons: HTMLDivElement, season: number): Element | undefined {
+    return Array.from(cachedSeasons.children).find(child => getYearForCachedSeason(child) === season);
+}
+
+function getYearForCachedSeason(cachedSeason: Element): number {
+    return Number(cachedSeason.querySelector('.cached-season-year')?.firstChild?.textContent?.trim());
+}
+
+function getFirstLessThanCachedSeasonForYear(cachedSeasons: HTMLDivElement, season: number): Element | undefined {
+    return Array.from(cachedSeasons.children).find(child => getYearForCachedSeason(child) < season);
+}
+
 async function updateCachedSeasons(fetchFileSizes: boolean) {
     const statePromise = requestStatcastCalculationsState();
+    await updateCachedSeasonFileSizes(fetchFileSizes);
+    await updateAnimations(statePromise);
+}
+
+// this would be way easier if we didn't have to keep the animations smooth between refreshes
+async function updateCachedSeasonFileSizes(fetchFileSizes: boolean) {
     const db = await openDB<StatcastDB>('statcast-data');
     const seasons = await getCachedSeasons(db);
     seasons.sort((a, b) => b - a);
 
     const cachedSeasons: HTMLDivElement = document.querySelector('div#cached-seasons')! as HTMLDivElement;
-    const children: HTMLElement[] = [];
-    for (const season of seasons) {
-        const fileSize = fetchFileSizes ? await getFileSizeForSeason(season, db) : undefined;
-        children.push(createCalculatedSeason(season, fileSize));
-    }
-    cachedSeasons.replaceChildren(...children);
 
-    const state = await statePromise;
-    disableLoadingAnimation('#cached-seasons-loading-animation');
-    disableLoadingAnimation('#custom-stats-loading-animation');
-    if (state === 'idle') {
-        // do nothing
-    } else if (state === 'downloading') {
-        enableLoadingAnimation('#cached-seasons-loading-animation');
-    } else {
-        enableLoadingAnimation('#custom-stats-loading-animation');
+    const fileSizesBySeason = await Promise.all(seasons.map(async season => {
+        return [season, fetchFileSizes ? await getFileSizeForSeason(season, db) : undefined] as [number, number | undefined];
+    }));
+
+    for (const child of cachedSeasons.children) {
+        if (!seasons.includes(getYearForCachedSeason(child))) {
+            child.remove();
+        }
+    }
+
+    for (const [season, fileSize] of fileSizesBySeason) {
+        const cachedSeason = getCachedSeasonForYear(cachedSeasons, season);
+        console.log('cached season:', season, cachedSeason);
+        if (cachedSeason !== undefined) {
+            cachedSeason.querySelector('.cached-season-file-size')!.innerHTML = (fileSize === undefined ? '- - - . - MB' : prettyPrintFileSize(fileSize));
+        } else {
+            const newCachedSeason = createCalculatedSeason(season, fileSize);
+            const lessThan = getFirstLessThanCachedSeasonForYear(cachedSeasons, season);
+            if (lessThan === undefined) {
+                cachedSeasons.appendChild(newCachedSeason);
+            } else {
+                lessThan.before(newCachedSeason);
+            }
+        }
     }
 }
 
-function initMessageHandler() {
-    browser.runtime.onMessage.addListener((message, _, _sendResponse) => {
-        if (isToggleLoadingAnimation(message)) {
-            if (message.state ?? false) {
-                enableLoadingAnimation(message.selector);
-            } else {
-                disableLoadingAnimation(message.selector);
-            }
-        }
-    })
+async function updateAnimations(statePromise: Promise<typeof CURRENT_TASK_QUEUE_STATE>) {
+    const state = await statePromise;
+    document.querySelectorAll('.section-border-loading-animation-rect').forEach(e => e.classList.remove('is-loading'));
+    if (state === 'idle') {
+        // do nothing
+    } else if ('downloadingSeason' in state) {
+        const season = state.downloadingSeason;
+        const cachedSeasons: HTMLDivElement = document.querySelector('div#cached-seasons')!;
+        const element = getCachedSeasonForYear(cachedSeasons, season);
+        element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
+    } else if ('calculatingStat' in state) {
+        const stat = state.calculatingStat;
+        const filename = STAT_TO_FILENAME_MAP[stat] ?? '';
+        const elements = Array.from(document.querySelectorAll('.custom-stats-entry-wrapper'));
+        const element = elements.find(e => e.querySelector('.cached-stats-entry-name')!.innerHTML === filename);
+        element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
+    }
 }
 
 (async () => {
-    initMessageHandler();
     await refreshCustomStats();
     SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
         const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;

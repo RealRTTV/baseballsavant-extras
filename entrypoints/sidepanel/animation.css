@@ -11,7 +11,7 @@
 .section-border-background-rect {
     rx: var(--border-radius);
     stroke-width: var(--border-width);
-    stroke: var(--ink-black);
+    stroke: var(--border-color);
 }
 
 .section-border-loading-animation-rect {
@@ -21,7 +21,7 @@
     opacity: 0;
 }
 
-.section-border-loading-animation-rect.is-enabled {
+.section-border-loading-animation-rect.is-loading {
     opacity: 1;
 }
 

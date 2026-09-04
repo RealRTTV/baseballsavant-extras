@@ -26,12 +26,18 @@ body {
 .section-border {
     --border-width: 1px;
     --border-radius: 8px;
+    --border-color: var(--ink-black);
     margin: 8px;
     /*border: var(--border-width) solid var(--ink-black);*/
     /*border-radius: var(--border-radius);*/
     padding: 8px;
     position: relative;
     background: white;
+}
+
+.section-border-border {
+    border: var(--border-width) solid var(--ink-black);
+    border-radius: var(--border-radius);
 }
 
 .section-header {

@@ -16,6 +16,8 @@ export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStat
 
 let LOADED_CUSTOM_STATS: CustomStat<any>[] = [];
 
+export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
+
 export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
 
 async function parseStorage(record: Record<string, CustomStatFile>) {
@@ -35,6 +37,7 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
         }
         URL.revokeObjectURL(objectURL);
     }
+    STAT_TO_FILENAME_MAP = statToFilenameMap;
     LOADED_CUSTOM_STATS = customStats;
     LOADED_CUSTOM_STAT_PROPERTIES = customStats.map(stat => stat.property);
 
