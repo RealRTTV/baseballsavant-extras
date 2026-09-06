@@ -4,6 +4,8 @@ import type {StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {openDB} from "idb";
 import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
 import {removeCustomStatFile} from "@/utils/custom-stats.ts";
+import wasmLogoUrl from '@/assets/wasm-logo.svg?url';
+import jsLogoUrl from '@/assets/js-logo.svg?url';
 
 async function onPurge(season: number, div: HTMLDivElement): Promise<void> {
     const db = await openDB<StatcastDB>('statcast-data');
@@ -14,6 +16,11 @@ async function onPurge(season: number, div: HTMLDivElement): Promise<void> {
 
 export function createCustomStatsEntry(filename: string): HTMLDivElement {
     const div = document.createElement('div');
+
+    const imgHTML = filename.endsWith('wasm')
+        ? `<img class="custom-stats-entry-logo" src="${wasmLogoUrl}" alt="WASM"/>`
+        : `<img class="custom-stats-entry-logo" src="${jsLogoUrl}" alt="JS"/>`;
+
     div.className = 'custom-stats-entry-wrapper';
     div.innerHTML = `
 <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-color: var(--light-gray); --border-radius: 4px">
@@ -21,6 +28,7 @@ export function createCustomStatsEntry(filename: string): HTMLDivElement {
     <rect id="custom-stats-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
 </svg>
 <div class="custom-stats-entry">
+    ${imgHTML}
     <span class="custom-stats-entry-name" title="${filename}">${filename}</span>
     <span class="delete-button">&times;</span>
 </div>

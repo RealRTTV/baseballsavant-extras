@@ -37,7 +37,7 @@ export async function getStatFromDB(stat: ExtendedPercentileProperty, season: nu
     return cache.byPlayer[String(player)];
 }
 
-export async function getDayFromURL(date: string): Promise<string | null> {
+export async function getDayFromURL(date: string): Promise<Uint8Array | null> {
     const URL: string = `https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt=${date}&game_date_lt=${date}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&`;
 
     const result = await fetch(URL);
@@ -45,14 +45,21 @@ export async function getDayFromURL(date: string): Promise<string | null> {
         return null;
     }
 
-    return result.text();
+    return result.bytes();
 }
 
-export async function getDayFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Papa.ParseResult<StatcastRow>> {
-    return Papa.parse(await db.get('date', date) ?? '', {
-        header: true,
-        dynamicTyping: true,
-    });
+export async function getDayCSVBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>, totals: { read: number, string: number, parse: number }): Promise<Papa.ParseResult<StatcastRow>> {
+    const a = performance.now();
+    const bytes = await db.get('date', date) ?? '';
+    const b = performance.now();
+    const string = String(bytes);
+    const c = performance.now();
+    const csv = Papa.parse<StatcastRow>(string, { header: true });
+    const d = performance.now();
+    totals.read += b - a;
+    totals.string += c - b;
+    totals.parse += d - c;
+    return csv;
 }
 
 export async function getFileSizeForSeason(season: number, db: IDBPDatabase<StatcastDB>): Promise<number> {

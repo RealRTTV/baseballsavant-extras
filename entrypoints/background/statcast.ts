@@ -1,7 +1,7 @@
 import {type DBSchema, type IDBPDatabase, openDB} from 'idb';
 import PQueue from "p-queue";
 import {getConfig} from "@/utils/config.ts";
-import {getDayFromDB, getDayFromURL, seasonDates} from "@/entrypoints/background/statcast-helper.ts";
+import {getDayCSVBytesFromDB, getDayFromURL, seasonDates} from "@/entrypoints/background/statcast-helper.ts";
 import {distributionData, getCustomStatForName} from "@/utils/custom-stats.ts";
 
 const TASK_QUEUE_QUEUE = new PQueue({ concurrency: 1 });
@@ -71,7 +71,7 @@ async function getAllTasks(): Promise<(() => Promise<void>)[]> {
 export interface StatcastDB extends DBSchema {
     date: {
         key: string;
-        value: string;
+        value: Uint8Array;
     };
     season: {
         key: string;
@@ -122,11 +122,19 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
 
                 const newDates = seasonDates(season).filter(date => !cache.cachedDates.includes(date)).toArray();
 
+                const totals = { read: 0, string: 0, parse: 0, calc: 0 };
+
                 for (const date of newDates) {
-                    const data = await getDayFromDB(date, db);
+                    const data = await getDayCSVBytesFromDB(date, db, totals);
+                    const a = performance.now();
                     statInstance.apply(data.data, cache.byPlayer);
+                    const b = performance.now();
+                    totals.calc += b - a;
                 }
+
                 cache.cachedDates.push(...newDates);
+
+                console.log(totals);
 
                 DISTRIBUTION_METRICS[`${season}:${stat.value}`] = distributionData(statInstance, cache.byPlayer);
 
