@@ -1,15 +1,18 @@
 import {type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
 import firstPitchStrikeFileContents from '@/.output/custom_stats/first-pitch-strike.js?raw';
 import {type ExtendedPercentileProperty} from "@/utils/stats";
+import {prettyPrintTimeSince} from "@/utils/dates.ts";
 
 type CustomStatFile = {
     src: string;
+    lastUpdated: Date,
 };
 
 export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
     fallback: {
         'first-pitch-strike.js': {
             src: firstPitchStrikeFileContents,
+            lastUpdated: new Date(),
         }
     }
 });
@@ -48,6 +51,10 @@ export async function refreshCustomStats() {
     CUSTOM_STATS_STORAGE.watch(parseStorage);
 }
 
+export function getCustomStatForName(name: string): CustomStat<any> | undefined {
+    return LOADED_CUSTOM_STATS.find(stat => stat.property.value === name);
+}
+
 export async function removeCustomStatFile(filename: string) {
     const value = await CUSTOM_STATS_STORAGE.getValue();
     delete value[filename];
@@ -55,8 +62,12 @@ export async function removeCustomStatFile(filename: string) {
     await CUSTOM_STATS_STORAGE.setValue(value);
 }
 
-export function getCustomStatForName(name: string): CustomStat<any> | undefined {
-    return LOADED_CUSTOM_STATS.find(stat => stat.property.value === name);
+export async function addCustomStat(name: string, contents: string) {
+    const CUSTOM_STATS = await CUSTOM_STATS_STORAGE.getValue();
+    if (name in CUSTOM_STATS) {
+        console.info(`Custom Stat '${name}' already exists (created ${prettyPrintTimeSince(CUSTOM_STATS[name]!.lastUpdated)}), replacing...`);
+    }
+    CUSTOM_STATS[name] = { src: contents, lastUpdated: new Date() };
 }
 
 export function distributionData<T extends object>(stat: CustomStat<T>, byPlayer: Record<string, T>): [number, number] {

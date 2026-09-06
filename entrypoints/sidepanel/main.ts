@@ -9,7 +9,7 @@ import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statc
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/sidepanel/html-generation.ts";
-import {CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAME_MAP} from "@/utils/custom-stats.ts";
+import {addCustomStat, CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAME_MAP} from "@/utils/custom-stats.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 import {prettyPrintFileSize} from "@/utils/files.ts";
 
@@ -42,7 +42,7 @@ function initDragAndDrop() {
         customStats.classList.remove('is-dragging');
         const files = e.dataTransfer?.files!;
         for (const file of files) {
-            console.log(await file.text());
+            await addCustomStat(file.name, await file.text());
         }
     });
 
@@ -70,7 +70,7 @@ function getFirstLessThanCachedSeasonForYear(cachedSeasons: HTMLDivElement, seas
 async function updateCachedSeasons(fetchFileSizes: boolean) {
     const statePromise = requestStatcastCalculationsState();
     await updateCachedSeasonFileSizes(fetchFileSizes);
-    await updateAnimations(statePromise);
+    await updateLoadingAnimations(statePromise);
 }
 
 // this would be way easier if we didn't have to keep the animations smooth between refreshes
@@ -93,7 +93,6 @@ async function updateCachedSeasonFileSizes(fetchFileSizes: boolean) {
 
     for (const [season, fileSize] of fileSizesBySeason) {
         const cachedSeason = getCachedSeasonForYear(cachedSeasons, season);
-        console.log('cached season:', season, cachedSeason);
         if (cachedSeason !== undefined) {
             cachedSeason.querySelector('.cached-season-file-size')!.innerHTML = (fileSize === undefined ? '- - - . - MB' : prettyPrintFileSize(fileSize));
         } else {
@@ -108,7 +107,7 @@ async function updateCachedSeasonFileSizes(fetchFileSizes: boolean) {
     }
 }
 
-async function updateAnimations(statePromise: Promise<typeof CURRENT_TASK_QUEUE_STATE>) {
+async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK_QUEUE_STATE>) {
     const state = await statePromise;
     document.querySelectorAll('.section-border-loading-animation-rect').forEach(e => e.classList.remove('is-loading'));
     if (state === 'idle') {
@@ -122,7 +121,7 @@ async function updateAnimations(statePromise: Promise<typeof CURRENT_TASK_QUEUE_
         const stat = state.calculatingStat;
         const filename = STAT_TO_FILENAME_MAP[stat] ?? '';
         const elements = Array.from(document.querySelectorAll('.custom-stats-entry-wrapper'));
-        const element = elements.find(e => e.querySelector('.cached-stats-entry-name')!.innerHTML === filename);
+        const element = elements.find(e => e.querySelector('.custom-stats-entry-name')!.innerHTML === filename);
         element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
     }
 }
