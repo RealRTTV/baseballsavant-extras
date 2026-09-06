@@ -8,7 +8,6 @@ import {isRefreshCustomStats} from "@/utils/messages/refresh-custom-stats.ts";
 import {refreshCustomStats} from "@/utils/custom-stats.ts";
 import {initConfig} from "@/utils/config.ts";
 import {isStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
-import {initWasm} from "@/entrypoints/background/wasm.ts";
 
 export default defineBackground(() => {
     (async () => {
@@ -18,7 +17,6 @@ export default defineBackground(() => {
         initSidePanel();
         initBundleMixin();
         rerunStatcastDataCalculations();
-        await initWasm();
     })()
 });
 

@@ -17,8 +17,8 @@ export function applyServerValsPatch(serverVals: ServerVals, patches: ServerVals
         }
 
         (statcastSeason as any)[`${patch.key}`] = patch.value;
-        (statcastSeason as any)[`percent_rank_${patch.key}`] = Math.round(patch.percentile ?? 0);
-        (statcastSeason as any)[`percent_rank_${patch.key}_unrounded`] = patch.percentile;
+        (statcastSeason as any)[`${patch.percent_rank_key}`] = Math.round(patch.percentile ?? 0);
+        (statcastSeason as any)[`${patch.percent_rank_key}_unrounded`] = patch.percentile;
     }
 
     for (const key of keys) {

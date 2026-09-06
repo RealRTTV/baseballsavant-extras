@@ -30,6 +30,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
 
             patches.patches.push({
                 key: stat.value,
+                percent_rank_key: stat.percent_value,
                 percentile,
                 season,
                 value

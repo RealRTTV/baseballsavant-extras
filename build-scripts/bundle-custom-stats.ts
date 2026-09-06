@@ -1,6 +1,7 @@
 import {build, type Plugin} from 'vite';
-import {readdir, glob, copyFile} from 'node:fs/promises';
-import {join, relative, resolve, basename} from 'node:path';
+import {readdir, copyFile} from 'node:fs/promises';
+import {join, relative, resolve} from 'node:path';
+import {execSync} from 'child_process';
 
 async function getCustomStatPaths() {
     const entries = await readdir("utils/stats/custom_stats", { recursive: true, withFileTypes: true });
@@ -43,13 +44,14 @@ export function bundleCustomStatsPlugin(): Plugin {
         name: 'bundle-custom-stats',
         apply: 'build',
         async closeBundle() {
+            execSync('cd rust-wasm && /bin/bash ./build.sh');
+
             for (const path of await getCustomStatPaths()) {
                 await bundleEntry(path);
             }
 
-            for await (const src of glob('./rust-wasm/target/wasm32-unknown-unknown/*/*.wasm')) {
-                const filename = basename(src);
-                await copyFile(src, `./.output/custom_stats/${filename}`);
+            for (const file of await readdir("rust-wasm/pkg", { recursive: false, withFileTypes: true })) {
+                await copyFile(join(file.parentPath, file.name), `./.output/custom_stats/${file.name}`);
             }
         },
     }

@@ -1,21 +1,19 @@
-use std::alloc::{alloc, dealloc, Layout};
+use shared::log;
 
-#[link(wasm_import_module = "env")]
-unsafe extern "C" {
-    safe fn log(_: i32);
-}
+const PERCENTILE_PROPERTY: &[u8] = include_bytes!("percentile_property.json");
 
-#[unsafe(no_mangle)]
-pub extern "C" fn malloc(len: usize) -> *mut u8 {
-    unsafe { alloc(Layout::array::<u8>(len).expect("valid layout")) }
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn free(ptr: *mut u8, len: usize) {
-    unsafe { dealloc(ptr, Layout::array::<u8>(len).unwrap()) }
-}
+#[unsafe(link_section = "percentile_property")]
+pub static PERCENTILE_PROPERTY_STATIC: [u8; PERCENTILE_PROPERTY.len()] = {
+    let mut out = [0; PERCENTILE_PROPERTY.len()];
+    let mut i = 0;
+    while i < PERCENTILE_PROPERTY.len() {
+        out[i] = PERCENTILE_PROPERTY[i];
+        i += 1;
+    }
+    out
+};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn main() {
-    log(4);
+    log("hi mom");
 }

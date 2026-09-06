@@ -53,13 +53,13 @@ export const enum DisplayType {
 }
 
 export function isPercentileProperty(property: any): property is PercentileProperty {
-    return typeof property.label === 'string' &&
+    return typeof property === 'object' &&
+        typeof property.label === 'string' &&
         typeof property.value === 'string' &&
         typeof property.percent_value === 'string';
 }
 
-export function isExtendedPercentileProperty(property: PercentileProperty): property is ExtendedPercentileProperty {
+export function isExtendedPercentileProperty(property: any): property is ExtendedPercentileProperty {
     return isPercentileProperty(property) &&
-        typeof (property as any).display_type === 'number' &&
-        typeof (property as any).qualification_threshold === 'number';
+        typeof (property as any).display_type === 'number';
 }

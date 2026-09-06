@@ -1,9 +1,10 @@
 import {defineConfig} from 'wxt';
 import {bundleCustomStatsPlugin} from './build-scripts/bundle-custom-stats.ts';
+import arraybuffer from 'vite-plugin-arraybuffer';
 
 export default defineConfig({
     vite: () => ({
-        plugins: [bundleCustomStatsPlugin()],
+        plugins: [bundleCustomStatsPlugin(), arraybuffer()],
     }),
     modules: ['@wxt-dev/auto-icons'],
     autoIcons: {

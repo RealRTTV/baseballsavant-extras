@@ -1,19 +1,25 @@
 import {type BaseCache, type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
-import firstPitchStrikeFileContents from '@/.output/custom_stats/first-pitch-strike.js?raw';
-import {type ExtendedPercentileProperty} from "@/utils/stats";
+import firstPitchStrikeJSFileContents from '@/.output/custom_stats/first-pitch-strike.js?uint8array';
+import firstPitchStrikeWASMFileContents from '@/.output/custom_stats/first_pitch_strike.wasm?uint8array';
+import {type ExtendedPercentileProperty, isExtendedPercentileProperty} from "@/utils/stats";
 import {prettyPrintTimeSince} from "@/utils/dates.ts";
+import type {WASMExports} from "@/utils/wasm.ts";
 
 type CustomStatFile = {
-    src: string;
+    src: Uint8Array<ArrayBuffer>;
     lastUpdated: Date,
 };
 
 export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
     fallback: {
-        'first-pitch-strike.js': {
-            src: firstPitchStrikeFileContents,
+        // 'first-pitch-strike.js': {
+        //     src: firstPitchStrikeJSFileContents,
+        //     lastUpdated: new Date(),
+        // },
+        'first-pitch-strike.wasm': {
+            src: firstPitchStrikeWASMFileContents,
             lastUpdated: new Date(),
-        }
+        },
     }
 });
 
@@ -23,13 +29,65 @@ export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
 
 export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
 
+async function parseJSStat(src: string): Promise<CustomStat<any, any>[]> {
+    const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    const moduleNamespace = await import(/* @vite-ignore */ objectURL);
+    const values = Object.values(moduleNamespace).filter(isCustomStat);
+    URL.revokeObjectURL(objectURL);
+    return values;
+}
+
+function stringFromAddr(ptr: number, len: number, exports: WASMExports): string {
+    return new TextDecoder().decode(new Uint8Array(exports.memory.buffer, ptr, len));
+}
+
+async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<CustomStat<any, any>[]> {
+    const { instance, module } = await WebAssembly.instantiate(src, {
+        env: {
+            log: (ptr: number, len: number) => console.log(stringFromAddr(ptr, len, instance.exports as WASMExports)),
+            warn: (ptr: number, len: number) => console.warn(stringFromAddr(ptr, len, instance.exports as WASMExports)),
+            error: (ptr: number, len: number) => console.error(stringFromAddr(ptr, len, instance.exports as WASMExports)),
+        }
+    });
+
+    const exports = instance.exports as WASMExports;
+
+    exports.main();
+
+    const percentileProperty = JSON.parse(new TextDecoder().decode(WebAssembly.Module.customSections(module, 'percentile_property')[0]!));
+    console.log(percentileProperty);
+    if (!isExtendedPercentileProperty(percentileProperty)) {
+        console.error('failed to parse WASM stat; invalid percentile property');
+        return [];
+    }
+
+    return [];
+
+    // return [{
+    //     property: percentileProperty,
+    //     create_cache: undefined,
+    //     on_incremental: undefined,
+    //     apply: undefined,
+    //     on_finish_apply: undefined,
+    //     value: undefined,
+    //     samples: undefined,
+    // } satisfies CustomStat<any, any>];
+}
+
 async function parseStorage(record: Record<string, CustomStatFile>) {
     const customStats: CustomStat<any>[] = [];
     const statToFilenameMap: Record<string, string> = {};
     for (const [filename, { src }] of Object.entries(record)) {
-        const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
-        const moduleNamespace = await import(/* @vite-ignore */ objectURL);
-        const values = Object.values(moduleNamespace).filter(isCustomStat);
+        let values: CustomStat<any, any>[] = [];
+        if (filename.endsWith('.js')) {
+            values = await parseJSStat(new TextDecoder().decode(src));
+        } else if (filename.endsWith('.wasm')) {
+            values = await parseWASMStat(src);
+        } else {
+            console.error(`unknown extension for custom stat: '${filename.split('/').at(-1)}'`)
+            continue;
+        }
+
         for (const value of values) {
             if (statToFilenameMap[value.property.value] === undefined) {
                 statToFilenameMap[value.property.value] = filename;
@@ -38,7 +96,6 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
                 console.warn(`stat ${value.property.value} from ${filename} already loaded under ${statToFilenameMap[value.property.value]}`);
             }
         }
-        URL.revokeObjectURL(objectURL);
     }
     STAT_TO_FILENAME_MAP = statToFilenameMap;
     LOADED_CUSTOM_STATS = customStats;

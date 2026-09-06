@@ -8,6 +8,7 @@ export type ServerValsPatch = {
 export type StatPatch = {
     season: number,
     key: string,
+    percent_rank_key: string;
     value: number | null,
     percentile: number | null,
 };
