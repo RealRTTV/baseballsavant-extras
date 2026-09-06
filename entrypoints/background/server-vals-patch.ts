@@ -23,7 +23,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
         for (const season of getConfig().activeSeasons) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
-            const { mean, stdev } = getDistributionData(stat, season)!;
+            const { mean, stdev, qual } = getDistributionData(stat, season)!;
             const value: number | null = statValue === undefined ? null : statInstance.value(statValue);
             const zScore: number | null = value == null ? null : stat.invert === true ? (mean - value / stdev) : (value - mean) / stdev;
             const percentile: number | null = zScore === null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
@@ -39,7 +39,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
                 metric: stat.value,
                 avg_metric: mean,
                 stddev_metric: stdev,
-                qualification_threshold: stat.qualification_threshold,
+                qualification_threshold: qual,
                 season,
             })
         }

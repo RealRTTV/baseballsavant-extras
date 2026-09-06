@@ -2,7 +2,9 @@ import type {CustomStat} from "@/utils/stats/custom_stats/module";
 import {DisplayType} from "@/utils/stats";
 
 export const FIRST_PITCH_STRIKE = {
-    apply: function (rows, map) {
+    create_cache: () => ({ by_player: {}, cached_dates: [] }),
+    on_incremental: function () {},
+    apply: function (rows, { by_player: map }) {
         for (const row of rows) {
             if (row.strikes === 0 && row.balls === 0) {
                 const id = String(row.pitcher);
@@ -12,14 +14,14 @@ export const FIRST_PITCH_STRIKE = {
             }
         }
     },
-    value: (self): number => 100.0 * self.n / self.t,
-    is_qualified: (self, threshold): boolean => self.t >= threshold,
+    on_finish_apply: () => false,
+    value: ({ n, t }): number => 100.0 * n / t,
+    samples: ({ t }) => t,
     property: {
         label: "FPS %",
         value: "first_pitch_strike",
         percent_value: "percent_rank_first_pitch_strike",
 
         display_type: DisplayType.OneDecimalPlace,
-        qualification_threshold: 100,
     },
 } satisfies CustomStat<{ n: number, t: number }>;

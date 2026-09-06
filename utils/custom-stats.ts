@@ -1,4 +1,4 @@
-import {type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
+import {type BaseCache, type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
 import firstPitchStrikeFileContents from '@/.output/custom_stats/first-pitch-strike.js?raw';
 import {type ExtendedPercentileProperty} from "@/utils/stats";
 import {prettyPrintTimeSince} from "@/utils/dates.ts";
@@ -17,7 +17,7 @@ export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStat
     }
 });
 
-let LOADED_CUSTOM_STATS: CustomStat<any>[] = [];
+let LOADED_CUSTOM_STATS: CustomStat<any, any>[] = [];
 
 export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
 
@@ -51,7 +51,7 @@ export async function refreshCustomStats() {
     CUSTOM_STATS_STORAGE.watch(parseStorage);
 }
 
-export function getCustomStatForName(name: string): CustomStat<any> | undefined {
+export function getCustomStatForName(name: string): CustomStat<any, any> | undefined {
     return LOADED_CUSTOM_STATS.find(stat => stat.property.value === name);
 }
 
@@ -70,11 +70,16 @@ export async function addCustomStat(name: string, contents: string) {
     CUSTOM_STATS[name] = { src: contents, lastUpdated: new Date() };
 }
 
-export function distributionData<T extends object>(stat: CustomStat<T>, byPlayer: Record<string, T>): [number, number] {
-    const values = Object.values(byPlayer).filter(instance => stat.is_qualified(instance, stat.property.qualification_threshold)).map(instance => stat.value(instance));
+export function qualificationThreshold<T extends object, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): number {
+    return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => stat.samples(instance))));
+}
+
+export function distributionData<T extends object, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
+    const threshold = (cache.qualification_threshold ??= qualificationThreshold(stat, cache));
+    const values = Object.values(cache.by_player).filter(instance => stat.samples(instance) >= threshold).map(stat.value);
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;
 
-    return [mean, Math.sqrt(variance)];
+    return { mean, stdev: Math.sqrt(variance), qual: threshold };
 }
