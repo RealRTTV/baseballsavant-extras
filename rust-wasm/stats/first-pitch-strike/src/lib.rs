@@ -1,4 +1,6 @@
-use shared::log;
+use std::alloc::{alloc, Layout, dealloc};
+use std::slice;
+use shared::{log, warn};
 
 const PERCENTILE_PROPERTY: &[u8] = include_bytes!("percentile_property.json");
 
@@ -14,6 +16,18 @@ pub static PERCENTILE_PROPERTY_STATIC: [u8; PERCENTILE_PROPERTY.len()] = {
 };
 
 #[unsafe(no_mangle)]
-pub extern "C" fn main() {
+pub extern "C" fn malloc(size: usize, align: usize) -> *mut u8 {
+    unsafe { alloc(Layout::from_size_align(size, align).unwrap()) }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn free(ptr: *mut u8, size: usize, align: usize) {
+    unsafe { dealloc(ptr, Layout::from_size_align(size, align).unwrap()) }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn main(ptr: *mut u8, size: usize) {
     log("hi mom");
+    let str = str::from_utf8(unsafe { slice::from_raw_parts(ptr, size) }).unwrap();
+    warn(str);
 }

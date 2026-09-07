@@ -42,7 +42,7 @@ function initDragAndDrop() {
         customStats.classList.remove('is-dragging');
         const files = e.dataTransfer?.files!;
         for (const file of files) {
-            await addCustomStat(file.name, await file.text());
+            await addCustomStat(file.name, await file.bytes());
         }
     });
 

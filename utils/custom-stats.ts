@@ -1,4 +1,10 @@
-import {type BaseCache, type CustomStat, isCustomStat} from "@/utils/stats/custom_stats";
+import {
+    type BaseCache,
+    type CustomStat,
+    isJSCustomStat, isWASMCustomStat,
+    type JSCustomStat,
+    type WASMCustomStat
+} from "@/utils/stats/custom_stats";
 import firstPitchStrikeJSFileContents from '@/.output/custom_stats/first-pitch-strike.js?uint8array';
 import firstPitchStrikeWASMFileContents from '@/.output/custom_stats/first_pitch_strike.wasm?uint8array';
 import {type ExtendedPercentileProperty, isExtendedPercentileProperty} from "@/utils/stats";
@@ -29,30 +35,58 @@ export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
 
 export let LOADED_CUSTOM_STAT_PROPERTIES: ExtendedPercentileProperty[] = [];
 
-async function parseJSStat(src: string): Promise<CustomStat<any, any>[]> {
+async function parseJSStat(src: string): Promise<JSCustomStat<any, any>[]> {
     const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
     const moduleNamespace = await import(/* @vite-ignore */ objectURL);
-    const values = Object.values(moduleNamespace).filter(isCustomStat);
+    const values = Object.values(moduleNamespace).filter(isJSCustomStat);
     URL.revokeObjectURL(objectURL);
     return values;
 }
 
-function stringFromAddr(ptr: number, len: number, exports: WASMExports): string {
-    return new TextDecoder().decode(new Uint8Array(exports.memory.buffer, ptr, len));
-}
+async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomStat<any>[]> {
+    function stringFromAddr(ptr: number, len: number, memory: WebAssembly.Memory): string {
+        return new TextDecoder().decode(new Uint8Array(memory.buffer, ptr, len));
+    }
 
-async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<CustomStat<any, any>[]> {
     const { instance, module } = await WebAssembly.instantiate(src, {
         env: {
-            log: (ptr: number, len: number) => console.log(stringFromAddr(ptr, len, instance.exports as WASMExports)),
-            warn: (ptr: number, len: number) => console.warn(stringFromAddr(ptr, len, instance.exports as WASMExports)),
-            error: (ptr: number, len: number) => console.error(stringFromAddr(ptr, len, instance.exports as WASMExports)),
+            log: (ptr: number, len: number) => console.log(stringFromAddr(ptr, len, (instance.exports as WASMExports).memory)),
+            warn: (ptr: number, len: number) => console.warn(stringFromAddr(ptr, len, (instance.exports as WASMExports).memory)),
+            error: (ptr: number, len: number) => console.error(stringFromAddr(ptr, len, (instance.exports as WASMExports).memory)),
         }
     });
 
-    const exports = instance.exports as WASMExports;
+    const {
+        memory,
+        malloc,
+        free,
+        main,
+        deserialize_cache,
+        serialize_cache,
+        on_incremental,
+        apply,
+        on_finish_apply,
+        value,
+        samples,
+    } = instance.exports as WASMExports;
 
-    exports.main();
+    function copyBytes(bytes: Uint8Array<ArrayBuffer>): { ptr: number, len: number } {
+        const len = bytes.length;
+        const ptr = malloc(len, 1);
+        new Uint8Array(memory.buffer, ptr, len).set(bytes);
+        return { ptr, len };
+    }
+
+    function copyString(str: string): ReturnType<typeof copyBytes> {
+        return copyBytes(new TextEncoder().encode(str));
+    }
+
+    const testStr = 'hi dad!';
+    const bytes = new TextEncoder().encode(testStr);
+    const len = bytes.length;
+    const ptr = malloc(len, 1);
+    new Uint8Array(memory.buffer, ptr, len).set(bytes);
+    main(ptr, len);
 
     const percentileProperty = JSON.parse(new TextDecoder().decode(WebAssembly.Module.customSections(module, 'percentile_property')[0]!));
     console.log(percentileProperty);
@@ -61,17 +95,45 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<CustomStat<a
         return [];
     }
 
-    return [];
-
-    // return [{
-    //     property: percentileProperty,
-    //     create_cache: undefined,
-    //     on_incremental: undefined,
-    //     apply: undefined,
-    //     on_finish_apply: undefined,
-    //     value: undefined,
-    //     samples: undefined,
-    // } satisfies CustomStat<any, any>];
+    return [{
+        property: percentileProperty,
+        deserialize_cache: function (cache: BaseCache<any> | undefined): boolean {
+            const json = cache ? JSON.stringify(cache) : '';
+            const { ptr, len } = copyString(json);
+            const result = deserialize_cache(ptr, len);
+            free(ptr, len, 1);
+            return !!result;
+        },
+        serialize_cache: function (): any {
+            const ptrlen = BigInt(serialize_cache());
+            const len = Number(ptrlen >> 32n);
+            const ptr = Number(ptrlen & 0xFFFFFFFFn);
+            const str = stringFromAddr(ptr, len, memory);
+            free(ptr, len, 1);
+            return JSON.parse(str);
+        },
+        on_incremental,
+        apply: function (data): void {
+            const { ptr, len } = copyBytes(data);
+            apply(ptr, len);
+            free(ptr, len, 1);
+        },
+        on_finish_apply: () => (!!on_finish_apply()) ? 'rerun' : false,
+        value: function (obj): number {
+            const json = JSON.stringify(obj);
+            const { ptr, len } = copyString(json);
+            const result = value(ptr, len);
+            free(ptr, len, 1);
+            return result;
+        },
+        samples: function (obj): number {
+            const json = JSON.stringify(obj);
+            const { ptr, len } = copyString(json);
+            const result = samples(ptr, len);
+            free(ptr, len, 1);
+            return result;
+        },
+    } satisfies WASMCustomStat<any>];
 }
 
 async function parseStorage(record: Record<string, CustomStatFile>) {
@@ -79,13 +141,17 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
     const statToFilenameMap: Record<string, string> = {};
     for (const [filename, { src }] of Object.entries(record)) {
         let values: CustomStat<any, any>[] = [];
-        if (filename.endsWith('.js')) {
-            values = await parseJSStat(new TextDecoder().decode(src));
-        } else if (filename.endsWith('.wasm')) {
-            values = await parseWASMStat(src);
-        } else {
-            console.error(`unknown extension for custom stat: '${filename.split('/').at(-1)}'`)
-            continue;
+        try {
+            if (filename.endsWith('.js')) {
+                values = await parseJSStat(new TextDecoder().decode(src));
+            } else if (filename.endsWith('.wasm')) {
+                values = await parseWASMStat(src);
+            } else {
+                console.error(`unknown extension for custom stat: '${filename.split('/').at(-1)}'`)
+                continue;
+            }
+        } catch (e) {
+            console.error("Failed to parse stat:", e);
         }
 
         for (const value of values) {
@@ -119,7 +185,7 @@ export async function removeCustomStatFile(filename: string) {
     await CUSTOM_STATS_STORAGE.setValue(value);
 }
 
-export async function addCustomStat(name: string, contents: string) {
+export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuffer>) {
     const CUSTOM_STATS = await CUSTOM_STATS_STORAGE.getValue();
     if (name in CUSTOM_STATS) {
         console.info(`Custom Stat '${name}' already exists (created ${prettyPrintTimeSince(CUSTOM_STATS[name]!.lastUpdated)}), replacing...`);
@@ -127,13 +193,16 @@ export async function addCustomStat(name: string, contents: string) {
     CUSTOM_STATS[name] = { src: contents, lastUpdated: new Date() };
 }
 
-export function qualificationThreshold<T extends object, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): number {
-    return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => stat.samples(instance))));
+export function qualificationThreshold<T extends object | string, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): number {
+    return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => (stat as any).samples(instance))));
 }
 
-export function distributionData<T extends object, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
-    const threshold = (cache.qualification_threshold ??= qualificationThreshold(stat, cache));
-    const values = Object.values(cache.by_player).filter(instance => stat.samples(instance) >= threshold).map(stat.value);
+export function distributionData<T extends object | string, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
+    const threshold: number = (cache.qualification_threshold ??= qualificationThreshold(stat, cache));
+    if (isWASMCustomStat(stat)) {
+        stat.deserialize_cache(cache);
+    }
+    const values: number[] = Object.values(cache.by_player).filter(instance => (stat as any).samples(instance) >= threshold).map((stat as any).value);
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;
