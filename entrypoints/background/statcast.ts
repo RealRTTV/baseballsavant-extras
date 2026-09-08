@@ -114,7 +114,7 @@ async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promi
 }
 
 async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T> = BaseCache<T>>(stat: JSCustomStat<T, Cache>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
-    console.log(`[JS] Calculating ${stat.value} for ${season}...`);
+    console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
     const cache: Cache = (await db.get('stats', [season, stat.property.value])) as Cache ?? stat.create_cache();
 
@@ -143,7 +143,8 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
 }
 
 async function calculateWASMCustomStat<T extends object, Cache extends BaseCache<T> = BaseCache<T>>(stat: WASMCustomStat<T, Cache>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
-    console.log(`[WASM] Calculating ${stat.value} for ${season}...`);
+    const start = performance.now();
+    console.log(`[WASM] Calculating ${stat.property.value} for ${season}...`);
 
     const cacheInDB: Cache | undefined = await db.get('stats', [season, stat.property.value]) as Cache | undefined;
     const cachedDates = cacheInDB?.cached_dates ?? [];
@@ -171,7 +172,8 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
 
     await db.put('stats', cache, [season, stat.property.value]);
 
-    console.log(`[WASM] Calculated ${stat.property.value} for ${season}`);
+    const end = performance.now();
+    console.log(`[WASM] Calculated ${stat.property.value} for ${season} in ${end - start}ms`);
 
 }
 

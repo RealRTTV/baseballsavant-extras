@@ -24,7 +24,7 @@ pub fn set_panic_hook() {
 ///
 /// export_ffi! {
 ///     fn deserialize_cache(csv: &str) {  }
-///     fn serialize_cache() -> impl AsRef<str> { &[] }
+///     fn serialize_cache() -> String { String::new() }
 ///     fn on_incremental() {}
 ///     fn apply(csv: &str) {}
 ///     fn on_finish_apply() -> bool { false }
@@ -36,7 +36,7 @@ pub fn set_panic_hook() {
 macro_rules! export_ffi {
     (
         fn deserialize_cache($cache_json:ident: &$(mut)? str) $deserialize_cache:block
-        fn serialize_cache() -> impl AsRef<str> $serialize_cache:block
+        fn serialize_cache() -> String $serialize_cache:block
         fn on_incremental() $on_incremental:block
         fn apply($apply_csv:ident: &$(mut)? str) $apply:block
         fn on_finish_apply() -> bool $on_finish_apply:block
@@ -54,11 +54,10 @@ macro_rules! export_ffi {
 
             fn _start() {
                 $crate::set_panic_hook();
-                $crate::log("hi mom");
             }
 
             fn deserialize_cache($cache_json: &mut str) $deserialize_cache
-            fn serialize_cache() -> impl AsRef<str> $serialize_cache
+            fn serialize_cache() -> String $serialize_cache
             fn on_incremental() $on_incremental
             fn apply($apply_csv: &mut str) $apply
             fn on_finish_apply() -> bool $on_finish_apply
@@ -71,7 +70,7 @@ macro_rules! export_ffi {
         fn free($free_ptr:ident: *mut u8, $free_size:ident: usize, $free_align:ident: usize) $free:block
         fn _start() $_start:block
         fn deserialize_cache($cache_json:ident: &$(mut)? str) $deserialize_cache:block
-        fn serialize_cache() -> impl AsRef<str> $serialize_cache:block
+        fn serialize_cache() -> String $serialize_cache:block
         fn on_incremental() $on_incremental:block
         fn apply($apply_csv:ident: &$(mut)? str) $apply:block
         fn on_finish_apply() -> bool $on_finish_apply:block
@@ -102,14 +101,12 @@ macro_rules! export_ffi {
         #[unsafe(export_name = "serialize_cache")]
         pub extern "C" fn __serialize_cache() -> i64 {
             #[doc(hidden)]
-            fn __serialize_cache0() -> impl ::core::convert::AsRef<str> $serialize_cache
+            fn __serialize_cache0() -> String $serialize_cache
 
-            let owned_string = __serialize_cache0();
-            let str = ::core::convert::AsRef::<str>::as_ref(&owned_string);
-            let ptr = str.as_ptr() as usize as u64;
-            let len = str.len() as u64;
+            let string: &str = Box::leak(__serialize_cache0().into_boxed_str());
+            let ptr = string.as_ptr() as usize as u64;
+            let len = string.len() as u64;
             let encoded = ptr | (len << 32);
-            core::mem::forget(owned_string);
             encoded as i64
         }
 
@@ -130,7 +127,7 @@ macro_rules! export_ffi {
         pub extern "C" fn __on_finish_apply() -> bool $on_finish_apply
 
         #[doc(hidden)]
-        #[unsafe(export_name = "samples")]
+        #[unsafe(export_name = "value")]
         pub extern "C" fn __value(ptr: *mut u8, size: usize) -> f64 {
             // SAFETY: FFI boundary, TextEncoder() encodes UTF-8
             let $value_json = unsafe { ::core::str::from_utf8_unchecked(::core::slice::from_raw_parts(ptr, size)) };

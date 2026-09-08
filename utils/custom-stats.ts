@@ -84,7 +84,6 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
     _start();
 
     const percentileProperty = JSON.parse(new TextDecoder().decode(WebAssembly.Module.customSections(module, 'percentile_property')[0]!));
-    console.log(percentileProperty);
     if (!isExtendedPercentileProperty(percentileProperty)) {
         console.error('failed to parse WASM stat; invalid percentile property');
         return [];
@@ -138,9 +137,9 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
         let values: CustomStat<any, any>[] = [];
         try {
             if (filename.endsWith('.js')) {
-                values = await parseJSStat(new TextDecoder().decode(src));
+                values.push(...await parseJSStat(new TextDecoder().decode(src)));
             } else if (filename.endsWith('.wasm')) {
-                values = await parseWASMStat(src);
+                values.push(...await parseWASMStat(src));
             } else {
                 console.error(`unknown extension for custom stat: '${filename.split('/').at(-1)}'`)
                 continue;
