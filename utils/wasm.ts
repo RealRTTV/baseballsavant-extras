@@ -4,7 +4,7 @@ export type WASMExports = {
     malloc: (size: number, align: number) => number;
     free: (ptr: number, size: number, align: number) => number;
 
-    main: (ptr: number, len: number) => void;
+    _start: () => void;
 
     /**
      * @param {number} ptr - to the JSON-serialized representation of the cache.

@@ -60,7 +60,7 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
         memory,
         malloc,
         free,
-        main,
+        _start,
         deserialize_cache,
         serialize_cache,
         on_incremental,
@@ -81,12 +81,7 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
         return copyBytes(new TextEncoder().encode(str));
     }
 
-    const testStr = 'hi dad!';
-    const bytes = new TextEncoder().encode(testStr);
-    const len = bytes.length;
-    const ptr = malloc(len, 1);
-    new Uint8Array(memory.buffer, ptr, len).set(bytes);
-    main(ptr, len);
+    _start();
 
     const percentileProperty = JSON.parse(new TextDecoder().decode(WebAssembly.Module.customSections(module, 'percentile_property')[0]!));
     console.log(percentileProperty);
