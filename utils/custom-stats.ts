@@ -19,14 +19,14 @@ type CustomStatFile = {
 
 export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
     fallback: {
-        // 'first-pitch-strike.js': {
-        //     src: firstPitchStrikeJSFileContents,
-        //     lastUpdated: new Date(),
-        // },
-        'first-pitch-strike.wasm': {
-            src: firstPitchStrikeWASMFileContents,
+        'first-pitch-strike.js': {
+            src: firstPitchStrikeJSFileContents,
             lastUpdated: new Date(),
         },
+        // 'first-pitch-strike.wasm': {
+        //     src: firstPitchStrikeWASMFileContents,
+        //     lastUpdated: new Date(),
+        // },
         'miss-distance.wasm': {
             src: missDistanceWASMFileContents,
             lastUpdated: new Date(),

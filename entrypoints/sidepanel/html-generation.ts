@@ -21,11 +21,13 @@ export function createCustomStatsEntry(filename: string): HTMLDivElement {
         ? `<img class="custom-stats-entry-logo" src="${wasmLogoUrl}" alt="WASM"/>`
         : `<img class="custom-stats-entry-logo" src="${jsLogoUrl}" alt="JS"/>`;
 
+    const colorCode = filename.endsWith('wasm') ? '#654aff' : '#f7df1e';
+
     div.className = 'custom-stats-entry-wrapper';
     div.innerHTML = `
-<svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-color: var(--light-gray); --border-radius: 4px">
+<svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-color: var(--light-gray); --border-radius: 4px; --border-width: 2px">
     <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-    <rect id="custom-stats-loading-animation" class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
+    <rect class="section-border-loading-animation-rect is-loading" x="0" y="0" width="100%" height="100%" fill="none" stroke="${colorCode}" pathLength="100" stroke-dasharray="15 85"/>
 </svg>
 <div class="custom-stats-entry">
     ${imgHTML}
@@ -44,9 +46,9 @@ export function createCalculatedSeason(season: number, file_size?: number): HTML
     div.innerHTML = `
 <span class="cached-season-year">
     ${season}
-    <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-radius: 4px">
+    <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-radius: 4px; --border-width: 1px">
         <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-        <rect class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
+        <rect class="section-border-loading-animation-rect is-loading" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
     </svg>
 </span>
 <span class="cached-season-file-size">${file_size === undefined ? '- - - . - MB' : prettyPrintFileSize(file_size)}</span>
