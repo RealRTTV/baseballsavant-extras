@@ -35,13 +35,15 @@ export const ALL_PERCENTILE_PROPERTIES: (activeStats: ExtendedPercentileProperty
     ...activeStats,
 ];
 
-function mapValueStringsToPercentileProperties(values: string[] | undefined, allStats: ExtendedPercentileProperty[]): PercentileProperty[] {
+function mapValueStringsToPercentileProperties(values: string[] | undefined, allStats: ExtendedPercentileProperty[]): PercentileProperty[];
+function mapValueStringsToPercentileProperties(values: string[] | undefined, allStats: ExtendedPercentileProperty[], preferred: PercentileProperty[]): PercentileProperty[];
+function mapValueStringsToPercentileProperties(values: string[] | undefined, allStats: ExtendedPercentileProperty[], preferred?: PercentileProperty[]): PercentileProperty[] {
     if (values === undefined || !Array.isArray(values) || values.some(v => typeof v !== 'string')) {
         throw new Error(`percentile properties category must be an array of strings, got ${typeof values}`);
     }
 
     return values.map(value => {
-        const match = ALL_PERCENTILE_PROPERTIES(allStats).find(p => p.value === value);
+        const match = [...(preferred ?? []), ...ALL_PERCENTILE_PROPERTIES(allStats)].find(p => p.value === value);
         if (match === undefined) {
             throw new Error(`unknown percentile property ${value}`);
         }
@@ -117,7 +119,7 @@ function parsePercentileConfig(percentiles: Record<string, any>, allStats: Exten
         },
         pitcherValue: {
             title: "Value",
-            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], allStats),
+            props: mapValueStringsToPercentileProperties(percentiles['pitcher-value'], allStats, Object.values(PITCHING_VALUE) as PercentileProperty[]),
             image: "slider-trophy.png",
             altImage: "Trophy",
         },
