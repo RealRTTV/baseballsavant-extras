@@ -134,10 +134,11 @@ function parsePercentileConfig(percentiles: Record<string, any>, allStats: Exten
 
 let CURRENT_CONFIG: ParsedConfig | null = null;
 
-export function onConfigWrite(toml_string: string): ParsedConfig {
+export async function onConfigWrite(toml_string: string): Promise<ParsedConfig> {
     const toml = TOML.parse(toml_string);
+    // it will double parse; idc
     CURRENT_CONFIG = parseConfig(toml);
-    SAVANT_EXTRAS_CONFIG_STRING.setValue(toml_string).catch(e => setTextareaConsoleError(e));
+    await SAVANT_EXTRAS_CONFIG_STRING.setValue(toml_string).catch(e => setTextareaConsoleError(e));
     return CURRENT_CONFIG;
 }
 

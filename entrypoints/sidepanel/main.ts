@@ -13,10 +13,10 @@ import {addCustomStat, CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAM
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 import {prettyPrintFileSize} from "@/utils/files.ts";
 
-export function onConfigInput(textarea: HTMLTextAreaElement) {
+export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        const config = onConfigWrite(textarea.value);
-        onConfig(config);
+        const config = await onConfigWrite(textarea.value);
+        onConfig(config!);
         setTextareaConsoleSuccess();
     } catch (e: any) {
         setTextareaConsoleError(e.message);
@@ -128,14 +128,14 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
 
 (async () => {
     await refreshCustomStats();
-    SAVANT_EXTRAS_CONFIG_STRING.getValue().then(CONFIG_STRING => {
+    SAVANT_EXTRAS_CONFIG_STRING.getValue().then(async CONFIG_STRING => {
         const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
         const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;
 
         if (textarea !== null) {
             textarea.value = CONFIG;
-            onConfigInput(textarea);
-            textarea.addEventListener('input', _ => onConfigInput(textarea));
+            await onConfigInput(textarea);
+            textarea.addEventListener('input', async _ => await onConfigInput(textarea));
         }
     });
     await initConfig();
