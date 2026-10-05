@@ -107,13 +107,15 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
             free(ptr, len, 1);
             return !!result;
         },
-        serialize_cache: function (): any {
+        serialize_cache: function (): BaseCache<any> {
             const ptrlen = BigInt(serialize_cache());
             const len = Number(ptrlen >> 32n);
             const ptr = Number(ptrlen & 0xFFFFFFFFn);
             const str = stringFromAddr(ptr, len, memory);
             free(ptr, len, 1);
-            return JSON.parse(str);
+            const cache: BaseCache<any> = JSON.parse(str);
+            cache.uses_subsidiary_csv = percentileProperty.wants_subsidiary_csv;
+            return cache;
         },
         on_incremental,
         apply: function (data, subsidiary_data): void {

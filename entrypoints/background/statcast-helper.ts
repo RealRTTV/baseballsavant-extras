@@ -1,7 +1,6 @@
 import type { IDBPDatabase } from "idb";
 import {DISTRIBUTION_METRICS, type StatcastDB} from "./statcast";
 import type {ExtendedPercentileProperty, PercentileProperty} from "@/utils/stats";
-import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 import type {BaseCache} from "@/utils/stats/custom_stats";
 
 export function* seasonDates(season: number): Generator<string> {
@@ -43,7 +42,12 @@ export async function getDayFromURL(date: string): Promise<Uint8Array<ArrayBuffe
         return null;
     }
 
-    return await result.bytes();
+    const bytes = await result.bytes();
+    if (bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))) {
+        return null;
+    }
+
+    return bytes;
 }
 
 export async function getDaySubsidiaryFromURL(date: string): Promise<Uint8Array<ArrayBuffer> | null> {
@@ -54,7 +58,12 @@ export async function getDaySubsidiaryFromURL(date: string): Promise<Uint8Array<
         return null;
     }
 
-    return await result.bytes();
+    const bytes = await result.bytes();
+    if (bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))) {
+        return null;
+    }
+
+    return bytes;
 }
 
 export async function getDayBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {
@@ -80,7 +89,5 @@ export async function purgeSeason(season: number, db: IDBPDatabase<StatcastDB>) 
         await db.delete('dateSubsidiary', date);
     }
     await db.delete('season', String(season));
-    for (const stat of LOADED_CUSTOM_STAT_PROPERTIES) {
-        await db.delete('stats', [season, stat.value]);
-    }
+    await db.delete('stats', IDBKeyRange.bound([season], [season, []]));
 }

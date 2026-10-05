@@ -77,7 +77,7 @@ async function getAllTasks(): Promise<(() => Promise<void>)[]> {
     const db = await createDB();
 
     return [
-        // async () => { await purgeOutdatedSubsidiaryCaches(db) },
+        async () => { await purgeOutdatedSubsidiaryCaches(db) },
         ...await createCacheStatcastDataTasks(db),
         ...createCalculateStatsTasks(db),
         async () => { CURRENT_TASK_QUEUE_STATE = 'idle'; },
@@ -107,7 +107,7 @@ type SeasonCache = {
     fileSize: number,
     cachedDates: string[]
     cachedSubsidiaryDates: string[],
-    cachedSubsidiaryVersion: number,
+    cachedSubsidiaryVersion: number | undefined,
 };
 
 export const DISTRIBUTION_METRICS: Record<string, { mean: number, stdev: number, qual: number }> = {};
@@ -121,6 +121,47 @@ async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
             db.createObjectStore('stats');
         }
     });
+}
+
+let __CURRENT_SUBSIDIARY_CSV_VERSION: number | undefined = undefined;
+let __LAST_UPDATED_CURRENT_SUBSIDIARY_CSV_VERSION: number | undefined = undefined;
+async function getCurrentSubsidiaryVersion(): Promise<number | undefined> {
+    if (__CURRENT_SUBSIDIARY_CSV_VERSION === undefined || __LAST_UPDATED_CURRENT_SUBSIDIARY_CSV_VERSION === undefined || (__LAST_UPDATED_CURRENT_SUBSIDIARY_CSV_VERSION <= Date.now() - 60_000)) {
+        let version: number | undefined = Number(await (await fetch("https://rttv.ca/statcast-subsidiary-csv/version")).text());
+        if (!Number.isFinite(version)) {
+            version = undefined;
+        }
+        __CURRENT_SUBSIDIARY_CSV_VERSION = version;
+        __LAST_UPDATED_CURRENT_SUBSIDIARY_CSV_VERSION = Date.now();
+    }
+
+    return __CURRENT_SUBSIDIARY_CSV_VERSION;
+}
+
+async function purgeOutdatedSubsidiaryCaches(db: IDBPDatabase<StatcastDB>) {
+    const version = await getCurrentSubsidiaryVersion();
+
+    for (const season of getConfig().activeSeasons) {
+        const cache = await getSeasonCache(season, db);
+        if (version === undefined || cache.cachedSubsidiaryVersion >= version) {
+            continue;
+        }
+
+        let stats = await db.getAllKeys('stats', IDBKeyRange.bound([season], [season, []]));
+        for (const key of stats) {
+            const cache = await db.get('stats', key);
+            if (cache?.uses_subsidiary_csv) {
+                await db.delete('stats', key);
+            }
+        }
+
+        for (const date in seasonDates(season)) {
+            await db.delete('dateSubsidiary', date);
+        }
+
+        cache.cachedSubsidiaryDates = [];
+        cache.cachedSubsidiaryVersion = version;
+    }
 }
 
 async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
@@ -232,11 +273,20 @@ function isInFinalState(date_string: string): boolean {
     const date = new Date(date_string);
     const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-    return date >= fiveDaysAgo;
+    return date <= fiveDaysAgo;
 }
 
 async function getSeasonCache(season: number, db: IDBPDatabase<StatcastDB>): Promise<SeasonCache> {
-    return (await db.get('season', String(season))) ?? { fileSize: 0, cachedDates: [], cachedSubsidiaryDates: [], cachedSubsidiaryVersion: -1 }
+    let result = await db.get('season', String(season));
+    if (result === undefined) {
+        let subsidiaryVersion = await getCurrentSubsidiaryVersion();
+        if (subsidiaryVersion === undefined) {
+            console.error("Failed to get subsidiary version number. This is very bad; we will assume a version of 0, but this will invalidate the cache on the next successful request.");
+        }
+        result = { fileSize: 0, cachedDates: [], cachedSubsidiaryDates: [], cachedSubsidiaryVersion: subsidiaryVersion };
+        await db.put('season', result, String(season));
+    }
+    return result;
 }
 
 async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
@@ -245,7 +295,7 @@ async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>)
     return Array.from(seasonDates(season).filter(date => !cachedDates.includes(date)).map(date => async () => {
         const result = await getDayFromURL(date);
 
-        if (isInFinalState(date)) {
+        if (result !== null || isInFinalState(date)) {
             if (result !== null) {
                 await db.put('date', result, date);
             }
@@ -259,13 +309,12 @@ async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>)
 }
 
 async function createDaySubsidiaryCacheTasks(season: number, db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
-    const seasonCache = await getSeasonCache(season, db);
-    const cachedDates = seasonCache.cachedSubsidiaryDates ?? [];
+    const cachedDates = (await getSeasonCache(season, db)).cachedSubsidiaryDates;
 
     return Array.from(seasonDates(season).filter(date => !cachedDates.includes(date)).map(date => async () => {
         const result = await getDaySubsidiaryFromURL(date);
 
-        if (isInFinalState(date)) {
+        if (result !== null || isInFinalState(date)) {
             if (result !== null) {
                 await db.put('dateSubsidiary', result, date);
             }

@@ -6,6 +6,7 @@ export type BaseCache<T extends object | string> = {
     by_player: Record<string, T>,
     cached_dates: string[],
     qualification_threshold?: number,
+    uses_subsidiary_csv?: boolean,
 };
 
 export type CustomStat<T extends object | string, Cache extends BaseCache<T> = BaseCache<T>> = JSCustomStat<T, Cache> | WASMCustomStat<T, Cache>;
