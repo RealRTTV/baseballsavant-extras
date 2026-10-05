@@ -8,7 +8,6 @@ import * as BASERUNNING from "@/utils/stats/baserunning.ts";
 import * as PITCHING_VALUE from "@/utils/stats/pitcher_value.ts";
 import * as PITCHING_ONLY from "@/utils/stats/pitching.ts";
 import type {ExtendedPercentileProperty, PercentileProperty, PercentileSpec} from "@/utils/stats";
-import {setTextareaConsoleError} from "@/entrypoints/sidepanel/html-helper.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
 import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 
@@ -49,6 +48,10 @@ function mapValueStringsToPercentileProperties(values: string[] | undefined, all
         }
         return match;
     })
+}
+
+export function __parseConfig(toml: TomlTable): ParsedConfig {
+    return parseConfig(toml);
 }
 
 function parseConfig(toml: TomlTable): ParsedConfig {
@@ -134,12 +137,8 @@ function parsePercentileConfig(percentiles: Record<string, any>, allStats: Exten
 
 let CURRENT_CONFIG: ParsedConfig | null = null;
 
-export async function onConfigWrite(toml_string: string): Promise<ParsedConfig> {
-    const toml = TOML.parse(toml_string);
-    // it will double parse; idc
-    CURRENT_CONFIG = parseConfig(toml);
-    await SAVANT_EXTRAS_CONFIG_STRING.setValue(toml_string).catch(e => setTextareaConsoleError(e));
-    return CURRENT_CONFIG;
+export function __setCurrentConfig(config: ParsedConfig | null) {
+    CURRENT_CONFIG = config;
 }
 
 export function getDefaultConfig(): ParsedConfig {

@@ -12,6 +12,7 @@ import {isStatcastCalculationsState} from "@/utils/messages/statcast-calculation
 export default defineBackground(() => {
     (async () => {
         initMessageHandler();
+        registerOffscreenWorker();
         await refreshCustomStats();
         await initConfig();
         initSidePanel();
@@ -19,6 +20,17 @@ export default defineBackground(() => {
         rerunStatcastDataCalculations();
     })()
 });
+
+function registerOffscreenWorker() {
+    browser.runtime.onInstalled.addListener(async () => {
+        await browser.offscreen.createDocument({
+            url: "/offscreen.html",
+            reasons: ["IFRAME_SCRIPTING"],
+            justification: "Needed to run custom stat calculations in-browser."
+        });
+        console.log('response:', await browser.runtime.sendMessage("1 + 1"));
+    })
+}
 
 function initMessageHandler() {
     browser.runtime.onMessage.addListener(async message => {

@@ -53,7 +53,7 @@ export_ffi! {
             game_pk: i64,
             at_bat_number: u32,
             pitch_number: u32,
-            pitch_type: String,
+//             pitch_type: String,
 
             pitcher: u32,
         }
@@ -85,7 +85,7 @@ export_ffi! {
             .map(|row @ SubsidiaryRow { game_pk, at_bat_number, pitch_number, .. }| (Identifier { game_pk, at_bat_number, pitch_number }, row))
             .collect::<FxHashMap<Identifier, SubsidiaryRow>>();
 
-        for StatcastRow { pitcher, pitch_type, game_pk, at_bat_number, pitch_number } in csv::Reader::from_reader(Cursor::new(csv)).into_deserialize::<StatcastRow>().filter_map(Result::ok) {
+        for StatcastRow { pitcher, /*pitch_type,*/ game_pk, at_bat_number, pitch_number } in csv::Reader::from_reader(Cursor::new(csv)).into_deserialize::<StatcastRow>().filter_map(Result::ok) {
             let Some(SubsidiaryRow { plate_x_in, plate_z_in, inferred_x_in, inferred_z_in, plausible, .. }) = map.get(&Identifier { game_pk, at_bat_number, pitch_number }) else { continue };
 
             if plausible != "True" {

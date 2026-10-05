@@ -1,7 +1,7 @@
 {
   "name": "baseballsavant-extras",
   "id": "baseballsavant-extras@rttv.ca",
-  "description": "manifest.json description",
+  "description": "Custom Stats on Baseball Savant!",
   "private": true,
   "version": "0.1.1",
   "type": "module",

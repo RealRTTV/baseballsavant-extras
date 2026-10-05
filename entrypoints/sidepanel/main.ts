@@ -1,4 +1,10 @@
-import {initConfig, onConfigWrite, type ParsedConfig, SAVANT_EXTRAS_CONFIG_STRING} from "@/utils/config.ts";
+import {
+    __parseConfig,
+    __setCurrentConfig,
+    initConfig,
+    type ParsedConfig,
+    SAVANT_EXTRAS_CONFIG_STRING
+} from "@/utils/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
 import {
     setTextareaConsoleError,
@@ -12,11 +18,15 @@ import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/side
 import {addCustomStat, CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAME_MAP} from "@/utils/custom-stats.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 import {prettyPrintFileSize} from "@/utils/files.ts";
+import TOML from "smol-toml";
 
 export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        const config = await onConfigWrite(textarea.value);
-        onConfig(config!);
+        const toml = TOML.parse(textarea.value);
+        const config = __parseConfig(toml);
+        await SAVANT_EXTRAS_CONFIG_STRING.setValue(textarea.value).catch(e => setTextareaConsoleError(e));
+        __setCurrentConfig(config);
+        onConfig(config);
         setTextareaConsoleSuccess();
     } catch (e: any) {
         setTextareaConsoleError(e.message);
