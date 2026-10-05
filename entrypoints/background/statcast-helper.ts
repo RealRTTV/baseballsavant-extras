@@ -3,7 +3,6 @@ import {DISTRIBUTION_METRICS, type StatcastDB} from "./statcast";
 import type {ExtendedPercentileProperty, PercentileProperty} from "@/utils/stats";
 import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 import type {BaseCache} from "@/utils/stats/custom_stats";
-import {createHash} from "sha1-uint8array";
 
 export function* seasonDates(season: number): Generator<string> {
     if (season < 2008) {
