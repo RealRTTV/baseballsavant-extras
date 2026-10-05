@@ -31,10 +31,11 @@ export type WASMExports = {
 
     /**
      * @param {[number, number]} ptr+len - string slice of a CSV allocated by JS in the WASM Module's memory.
+     * @param {[number, number]} sub_ptr+sub_len - string slice of a Statcast Subsidiary CSV allocated by JS in the WASM Module's memory.
      *
      * Modifies the cache stored in static memory.
      */
-    apply: (ptr: number, len: number) => void;
+    apply: (ptr: number, len: number, sub_ptr: number, sub_len: number) => void;
 
     /**
      * Returns whether to re-run the apply passes.

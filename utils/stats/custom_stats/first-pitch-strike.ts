@@ -4,7 +4,7 @@ import {DisplayType} from "@/utils/stats";
 export const FIRST_PITCH_STRIKE = {
     create_cache: () => ({ by_player: {}, cached_dates: [] }),
     on_incremental: function () {},
-    apply: function (rows, { by_player: map }) {
+    apply: function ({ by_player: map }, rows, _) {
         for (const row of rows) {
             if (row.strikes === 0 && row.balls === 0) {
                 const id = String(row.pitcher);
@@ -23,5 +23,6 @@ export const FIRST_PITCH_STRIKE = {
         percent_value: "percent_rank_first_pitch_strike",
 
         display_type: DisplayType.OneDecimalPlace,
+        wants_subsidiary_csv: false,
     },
 } satisfies CustomStat<{ n: number, t: number }>;

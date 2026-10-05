@@ -7,6 +7,7 @@ import {
 } from "@/utils/stats/custom_stats";
 import firstPitchStrikeJSFileContents from '@/.output/custom_stats/first-pitch-strike.js?uint8array';
 import firstPitchStrikeWASMFileContents from '@/.output/custom_stats/first_pitch_strike.wasm?uint8array';
+import missDistanceWASMFileContents from '@/.output/custom_stats/miss_distance.wasm?uint8array';
 import {type ExtendedPercentileProperty, isExtendedPercentileProperty} from "@/utils/stats";
 import {prettyPrintTimeSince} from "@/utils/dates.ts";
 import type {WASMExports} from "@/utils/wasm.ts";
@@ -24,6 +25,10 @@ export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStat
         // },
         'first-pitch-strike.wasm': {
             src: firstPitchStrikeWASMFileContents,
+            lastUpdated: new Date(),
+        },
+        'miss-distance.wasm': {
+            src: missDistanceWASMFileContents,
             lastUpdated: new Date(),
         },
     }
@@ -70,7 +75,11 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
         samples,
     } = instance.exports as WASMExports;
 
-    function copyBytes(bytes: Uint8Array<ArrayBuffer>): { ptr: number, len: number } {
+    function copyBytes(bytes: Uint8Array<ArrayBuffer> | null): { ptr: number, len: number } {
+        if (bytes === null) {
+            return { ptr: 0, len: 0 };
+        }
+
         const len = bytes.length;
         const ptr = malloc(len, 1);
         new Uint8Array(memory.buffer, ptr, len).set(bytes);
@@ -107,10 +116,12 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
             return JSON.parse(str);
         },
         on_incremental,
-        apply: function (data): void {
+        apply: function (data, subsidiary_data): void {
             const { ptr, len } = copyBytes(data);
-            apply(ptr, len);
+            const { ptr: sub_ptr, len: sub_len } = copyBytes(subsidiary_data);
+            apply(ptr, len, sub_ptr, sub_len);
             free(ptr, len, 1);
+            free(sub_ptr, sub_len, 1);
         },
         on_finish_apply: () => (!!on_finish_apply()) ? 'rerun' : false,
         value: function (obj): number {

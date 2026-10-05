@@ -26,6 +26,7 @@ export default defineConfig({
             'webRequest',
             'webRequestBlocking',
             '*://baseballsavant.mlb.com/*',
+            '*://rttv.ca/statcast-subsidiary-csv/*',
             '*://builds.mlbstatic.com/*',
             'unlimitedStorage'
         ],

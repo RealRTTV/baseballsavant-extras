@@ -29,6 +29,7 @@ export type PercentileProperty = {
 
 export type ExtendedPercentileProperty = PercentileProperty & {
     display_type: DisplayType,
+    wants_subsidiary_csv?: boolean,
 };
 
 export const enum DisplayType {

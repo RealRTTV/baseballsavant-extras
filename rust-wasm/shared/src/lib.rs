@@ -38,7 +38,7 @@ macro_rules! export_ffi {
         fn deserialize_cache($cache_json:ident: &$(mut)? str) $deserialize_cache:block
         fn serialize_cache() -> String $serialize_cache:block
         fn on_incremental() $on_incremental:block
-        fn apply($apply_csv:ident: &$(mut)? str) $apply:block
+        fn apply($apply_csv:ident: &$(mut)? str, $apply_subs_csv:ident: &$(mut)? str) $apply:block
         fn on_finish_apply() -> bool $on_finish_apply:block
         fn value($value_json:ident: &$(mut)? str) -> f64 $value:block
         fn samples($samples_json:ident: &$(mut)? str) -> usize $samples:block
@@ -59,7 +59,7 @@ macro_rules! export_ffi {
             fn deserialize_cache($cache_json: &mut str) $deserialize_cache
             fn serialize_cache() -> String $serialize_cache
             fn on_incremental() $on_incremental
-            fn apply($apply_csv: &mut str) $apply
+            fn apply($apply_csv: &mut str, $apply_subs_csv: &mut str) $apply
             fn on_finish_apply() -> bool $on_finish_apply
             fn value($value_json: &mut str) -> f64 $value
             fn samples($samples_json: &mut str) -> usize $samples
@@ -72,7 +72,7 @@ macro_rules! export_ffi {
         fn deserialize_cache($cache_json:ident: &$(mut)? str) $deserialize_cache:block
         fn serialize_cache() -> String $serialize_cache:block
         fn on_incremental() $on_incremental:block
-        fn apply($apply_csv:ident: &$(mut)? str) $apply:block
+        fn apply($apply_csv:ident: &$(mut)? str, $apply_subs_csv:ident: &$(mut)? str) $apply:block
         fn on_finish_apply() -> bool $on_finish_apply:block
         fn value($value_json:ident: &$(mut)? str) -> f64 $value:block
         fn samples($samples_json:ident: &$(mut)? str) -> usize $samples:block
@@ -116,9 +116,11 @@ macro_rules! export_ffi {
 
         #[doc(hidden)]
         #[unsafe(export_name = "apply")]
-        pub extern "C" fn __apply(ptr: *mut u8, size: usize) {
+        pub extern "C" fn __apply(ptr: *mut u8, size: usize, sub_ptr: *mut u8, sub_size: usize) {
             // SAFETY: FFI boundary, TextEncoder() encodes UTF-8
             let $apply_csv = unsafe { ::core::str::from_utf8_unchecked(::core::slice::from_raw_parts(ptr, size)) };
+            // SAFETY: FFI boundary, TextEncoder() encodes UTF-8
+            let $apply_subs_csv = unsafe { ::core::str::from_utf8_unchecked(::core::slice::from_raw_parts(sub_ptr, sub_size)) };
             $apply
         }
 

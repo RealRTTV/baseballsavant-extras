@@ -42,7 +42,7 @@ export_ffi! {
 
     fn on_incremental() {}
 
-    fn apply(csv: &str) {
+    fn apply(csv: &str, _subsidiary_csv: &str) {
         #[derive(Deserialize)]
         struct Row {
             balls: u8,

@@ -1,0 +1,8 @@
+{
+  "label": "Miss Distance",
+  "value": "miss_distance",
+  "percent_value": "miss_distance_percent_value",
+  "display_type": 3,
+  "wants_subsidiary_csv": true,
+  "invert": true
+}

@@ -3,6 +3,7 @@ import {DISTRIBUTION_METRICS, type StatcastDB} from "./statcast";
 import type {ExtendedPercentileProperty, PercentileProperty} from "@/utils/stats";
 import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 import type {BaseCache} from "@/utils/stats/custom_stats";
+import {createHash} from "sha1-uint8array";
 
 export function* seasonDates(season: number): Generator<string> {
     if (season < 2008) {
@@ -46,8 +47,23 @@ export async function getDayFromURL(date: string): Promise<Uint8Array<ArrayBuffe
     return await result.bytes();
 }
 
+export async function getDaySubsidiaryFromURL(date: string): Promise<Uint8Array<ArrayBuffer> | null> {
+    const URL: string = `https://rttv.ca/statcast-subsidiary-csv/${date}.csv`;
+
+    const result = await fetch(URL);
+    if (!result.ok) {
+        return null;
+    }
+
+    return await result.bytes();
+}
+
 export async function getDayBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {
     return await db.get('date', date) ?? new Uint8Array();
+}
+
+export async function getDaySubsidiaryBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {
+    return await db.get('date_subsidiary', date) ?? new Uint8Array();
 }
 
 export async function getFileSizeForSeason(season: number, db: IDBPDatabase<StatcastDB>): Promise<number> {
@@ -62,6 +78,7 @@ export async function getCachedSeasons(db: IDBPDatabase<StatcastDB>): Promise<nu
 export async function purgeSeason(season: number, db: IDBPDatabase<StatcastDB>) {
     for (const date of seasonDates(season)) {
         await db.delete('date', date);
+        await db.delete('date_subsidiary', date);
     }
     await db.delete('season', String(season));
     for (const stat of LOADED_CUSTOM_STAT_PROPERTIES) {
