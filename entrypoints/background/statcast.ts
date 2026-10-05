@@ -77,6 +77,7 @@ async function getAllTasks(): Promise<(() => Promise<void>)[]> {
     const db = await createDB();
 
     return [
+        // async () => { await purgeOutdatedSubsidiaryCaches(db) },
         ...await createCacheStatcastDataTasks(db),
         ...createCalculateStatsTasks(db),
         async () => { CURRENT_TASK_QUEUE_STATE = 'idle'; },
@@ -88,13 +89,13 @@ export interface StatcastDB extends DBSchema {
         key: string;
         value: Uint8Array<ArrayBuffer>;
     };
-    date_subsidiary: {
+    dateSubsidiary: {
         key: string;
         value: Uint8Array<ArrayBuffer>;
     };
     season: {
         key: string;
-        value: { fileSize: number };
+        value: SeasonCache;
     };
     stats: {
         key: [number, string];
@@ -102,13 +103,20 @@ export interface StatcastDB extends DBSchema {
     };
 }
 
+type SeasonCache = {
+    fileSize: number,
+    cachedDates: string[]
+    cachedSubsidiaryDates: string[],
+    cachedSubsidiaryVersion: number,
+};
+
 export const DISTRIBUTION_METRICS: Record<string, { mean: number, stdev: number, qual: number }> = {};
 
 async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
     return openDB<StatcastDB>('statcast-data', 1, {
         upgrade(db) {
             db.createObjectStore('date');
-            db.createObjectStore('date_subsidiary');
+            db.createObjectStore('dateSubsidiary');
             db.createObjectStore('season');
             db.createObjectStore('stats');
         }
@@ -120,6 +128,7 @@ async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promi
     for (const season of getConfig().activeSeasons) {
         tasks.push(async () => { CURRENT_TASK_QUEUE_STATE = { downloadingSeason: season } });
         tasks.push(...await createDayCacheTasks(season, db));
+        tasks.push(...await createDaySubsidiaryCacheTasks(season, db));
     }
     return tasks;
 }
@@ -219,19 +228,51 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
     return tasks;
 }
 
+function isInFinalState(date_string: string): boolean {
+    const date = new Date(date_string);
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    return date >= fiveDaysAgo;
+}
+
+async function getSeasonCache(season: number, db: IDBPDatabase<StatcastDB>): Promise<SeasonCache> {
+    return (await db.get('season', String(season))) ?? { fileSize: 0, cachedDates: [], cachedSubsidiaryDates: [], cachedSubsidiaryVersion: -1 }
+}
+
 async function createDayCacheTasks(season: number, db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
-    const allDates = await db.getAllKeys('date');
+    const cachedDates = (await getSeasonCache(season, db)).cachedDates;
 
-    return Array.from(seasonDates(season).filter(date => !allDates.includes(date)).map(date => async () => {
+    return Array.from(seasonDates(season).filter(date => !cachedDates.includes(date)).map(date => async () => {
         const result = await getDayFromURL(date);
-        const subsidiaryResult = await getDaySubsidiaryFromURL(date);
 
-        if (result !== null && subsidiaryResult !== null) {
-            await db.put('date', result, date);
-            await db.put('date_subsidiary', subsidiaryResult, date);
+        if (isInFinalState(date)) {
+            if (result !== null) {
+                await db.put('date', result, date);
+            }
 
-            const seasonData = await db.get('season', String(season)) ?? { fileSize: 0 };
-            seasonData.fileSize += result.length + subsidiaryResult.length;
+            const seasonData = await getSeasonCache(season, db);
+            seasonData.fileSize += result?.length ?? 0;
+            seasonData.cachedDates.push(date);
+            await db.put('season', seasonData, String(season));
+        }
+    }))
+}
+
+async function createDaySubsidiaryCacheTasks(season: number, db: IDBPDatabase<StatcastDB>): Promise<(() => Promise<void>)[]> {
+    const seasonCache = await getSeasonCache(season, db);
+    const cachedDates = seasonCache.cachedSubsidiaryDates ?? [];
+
+    return Array.from(seasonDates(season).filter(date => !cachedDates.includes(date)).map(date => async () => {
+        const result = await getDaySubsidiaryFromURL(date);
+
+        if (isInFinalState(date)) {
+            if (result !== null) {
+                await db.put('dateSubsidiary', result, date);
+            }
+
+            const seasonData = await getSeasonCache(season, db);
+            seasonData.fileSize += result?.length ?? 0;
+            seasonData.cachedSubsidiaryDates.push(date);
             await db.put('season', seasonData, String(season));
         }
     }))

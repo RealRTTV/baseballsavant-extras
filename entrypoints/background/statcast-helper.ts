@@ -62,7 +62,7 @@ export async function getDayBytesFromDB(date: string, db: IDBPDatabase<StatcastD
 }
 
 export async function getDaySubsidiaryBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {
-    return await db.get('date_subsidiary', date) ?? new Uint8Array();
+    return await db.get('dateSubsidiary', date) ?? new Uint8Array();
 }
 
 export async function getFileSizeForSeason(season: number, db: IDBPDatabase<StatcastDB>): Promise<number> {
@@ -77,7 +77,7 @@ export async function getCachedSeasons(db: IDBPDatabase<StatcastDB>): Promise<nu
 export async function purgeSeason(season: number, db: IDBPDatabase<StatcastDB>) {
     for (const date of seasonDates(season)) {
         await db.delete('date', date);
-        await db.delete('date_subsidiary', date);
+        await db.delete('dateSubsidiary', date);
     }
     await db.delete('season', String(season));
     for (const stat of LOADED_CUSTOM_STAT_PROPERTIES) {
