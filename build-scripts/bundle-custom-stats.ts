@@ -42,6 +42,7 @@ async function bundleEntry(srcPath: string) {
 export function bundleCustomStatsPlugin(): Plugin {
     return {
         name: 'bundle-custom-stats',
+        enforce: 'pre',
         apply: 'build',
         async closeBundle() {
             execSync('cd rust-wasm && /bin/bash ./build.sh');
