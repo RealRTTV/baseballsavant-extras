@@ -3,7 +3,7 @@ import {
     CURRENT_TASK_QUEUE_STATE
 } from "@/entrypoints/background/statcast";
 import {isRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
-import {initBundleMixin} from "@/entrypoints/background/savant-bundle-mixin.ts";
+import {initBundleMixin, mixinCodeForURL} from "@/entrypoints/background/savant-bundle-mixin.ts";
 import {addCustomStat, refreshCustomStats} from "@/entrypoints/background/custom-stats.ts";
 import {initConfig} from "@/utils/config.ts";
 import {isStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
@@ -17,6 +17,8 @@ import {removeCustomStatFile} from "@/entrypoints/background/custom-stats.ts";
 import {isRequestAddCustomStat} from "@/utils/messages/add-custom-stat.ts";
 import {isRequestLoadedCustomStatProperties} from "@/utils/messages/request-loaded-custom-stat-properties.ts";
 import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
+import {isRequestMixinCode} from "@/utils/messages/request-mixin-code.ts";
+import {responseMixinCode} from "@/utils/messages/response-mixin-code.ts";
 
 export default defineBackground(() => {
     (async () => {
@@ -25,7 +27,7 @@ export default defineBackground(() => {
         await refreshCustomStats();
         await initConfig();
         initSidePanel();
-        initBundleMixin();
+        if (import.meta.env.FIREFOX) initBundleMixin();
         rerunStatcastDataCalculations();
     })()
 });
@@ -41,26 +43,36 @@ function registerOffscreenWorker() {
 }
 
 function initMessageHandler() {
-    browser.runtime.onMessage.addListener(async (message, _sender, sendResponse) => {
+    browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (isRerunStatcastDataCalculations(message)) {
             rerunStatcastDataCalculations();
         } else if (isStatcastCalculationsState(message)) {
-            return CURRENT_TASK_QUEUE_STATE;
+            sendResponse(CURRENT_TASK_QUEUE_STATE);
         } else if (isRequestRemoveCustomStatFile(message)) {
-            return await removeCustomStatFile(message.filename);
+            removeCustomStatFile(message.filename).then(sendResponse);
+            return true;
         } else if (isRequestAddCustomStat(message)) {
-            return await addCustomStat(message.filename, message.contents);
+            addCustomStat(message.filename, message.contents).then(sendResponse);
+            return true;
         } else if (isRequestLoadedCustomStatProperties(message)) {
-            return LOADED_CUSTOM_STAT_PROPERTIES;
+            sendResponse(LOADED_CUSTOM_STAT_PROPERTIES);
+        } else if (isRequestMixinCode(message)) {
+            (async () => {
+                return responseMixinCode(await mixinCodeForURL(message.url, message.bundleUrl));
+            })().then(sendResponse);
+            return true;
         } else if (isW2BRequestMessage(message)) {
-            const payload = await handleW2BMessage(message);
-            if (payload !== undefined) {
-                sendResponse({
-                    payload,
-                    uuid: message.uuid,
-                    message: W2B_RESPONSE_MESSAGE_NAME,
-                } satisfies W2BResponseMessage);
-            }
+            (async () => {
+                const payload = await handleW2BMessage(message);
+                if (payload !== undefined) {
+                    return {
+                        payload,
+                        uuid: message.uuid,
+                        message: W2B_RESPONSE_MESSAGE_NAME,
+                    } satisfies W2BResponseMessage;
+                }
+            })().then(sendResponse);
+            return true;
         }
     });
 }

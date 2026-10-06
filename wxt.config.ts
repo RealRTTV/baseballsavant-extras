@@ -35,10 +35,12 @@ export default defineConfig({
         },
         permissions: [
             'storage',
+            'unlimitedStorage',
+
             // 'webRequest',
             // 'webRequestBlocking',
-            'unlimitedStorage',
             // "webRequestFilterResponse",
+
             "offscreen",
             "declarativeNetRequest",
             "declarativeNetRequestFeedback"

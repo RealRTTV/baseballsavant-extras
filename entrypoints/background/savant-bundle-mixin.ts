@@ -71,10 +71,33 @@ function patchStatFormatting(src: string): string {
     return src.replace(replacement, hit => `,__savantUnused=typeof __savantExtras!=="undefined"&&__savantExtras.onStatFormatting(${matches.map(match => match.match).join(',')},${JSON.stringify(getConfig().activeStats)})${hit}`)
 }
 
-export function initBundleMixin() {
+export async function mixinCodeForURL(url: string, bundleUrl: string): Promise<string> {
+    const response = await fetch(bundleUrl);
+    const src = (await response.text()).replaceAll('import.meta.url', `"${url}"`);
+    return await patchFile(src, url);
+}
+
+async function patchFile(src: string, url: string | undefined): Promise<string> {
     const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
 
-    if (import.meta.env.FIREFOX) browser.webRequest.onBeforeRequest.addListener(
+    let mixinCode: string | undefined = await fetch(browser.runtime.getURL('/baseballsavant-mixin.js')).then(r => r.text());
+    if (!mixinCode) {
+        throw new Error('mixinCode not loaded');
+    }
+
+    const playerId: number = Number(url?.match(PLAYER_ID_REGEX)?.[1]);
+    const patch: ServerValsPatch = await createServerValsPatch(playerId);
+
+    src = patchPercentileRankingsSpec(src);
+    console.log('Applied Percentile Rankings Patch Successfully!');
+    src = patchStatFormatting(src);
+    console.log('Applied Stat Formatting Patch Successfully!');
+    src = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + `globalThis.__savantNewPercentileSpec=${JSON.stringify(getConfig().percentiles)};` + '\n;' + mixinCode + '\n;' + src;
+    return src;
+}
+
+export function initBundleMixin() {
+    browser.webRequest.onBeforeRequest.addListener(
         (details) => {
             const url = (details as any).originUrl as string;
             if (url !== undefined && !url.includes('://baseballsavant.mlb.com/savant-player/')) {
@@ -94,20 +117,7 @@ export function initBundleMixin() {
                 out += decoder.decode();
                 try {
                     if (isCorrectJSFile(out)) {
-                        let mixinCode: string | undefined = await fetch(browser.runtime.getURL('/baseballsavant-mixin.js')).then(r => r.text());
-
-                        if (!mixinCode) {
-                            throw new Error('mixinCode not loaded');
-                        }
-
-                        const playerId: number = Number(((details as any).originUrl as string | undefined)?.match(PLAYER_ID_REGEX)?.[1]);
-                        const patch: ServerValsPatch = await createServerValsPatch(playerId);
-
-                        out = patchPercentileRankingsSpec(out);
-                        console.log('Applied Percentile Rankings Patch Successfully!');
-                        out = patchStatFormatting(out);
-                        console.log('Applied Stat Formatting Patch Successfully!');
-                        out = `globalThis.__savantServerValsPatch=${JSON.stringify(patch)};` + `globalThis.__savantNewPercentileSpec=${JSON.stringify(getConfig().percentiles)};` + '\n;' + mixinCode + '\n;' + out;
+                        out = await patchFile(out, (details as any).originUrl);
                         badge('');
                     }
                 } catch (err) {
