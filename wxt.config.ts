@@ -26,13 +26,22 @@ export default defineConfig({
             }
         },
         action: {},
+        declarative_net_request: {
+            rule_resources: [{
+                enabled: true,
+                id: "baseballsavant-mixin-block",
+                path: "baseballsavant-mixin-block.json"
+            }]
+        },
         permissions: [
             'storage',
-            'webRequest',
-            'webRequestBlocking',
+            // 'webRequest',
+            // 'webRequestBlocking',
             'unlimitedStorage',
-            "webRequestFilterResponse",
-            "offscreen"
+            // "webRequestFilterResponse",
+            "offscreen",
+            "declarativeNetRequest",
+            "declarativeNetRequestFeedback"
         ],
         host_permissions: [
             '*://baseballsavant.mlb.com/*',

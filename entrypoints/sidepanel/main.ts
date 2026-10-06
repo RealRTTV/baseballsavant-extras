@@ -15,11 +15,13 @@ import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statc
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/sidepanel/html-generation.ts";
-import {CUSTOM_STATS_STORAGE} from "@/utils/custom-stats.ts";
+import {__setLOADED_CUSTOM_STAT_PROPERTIES, CUSTOM_STATS_STORAGE} from "@/utils/custom-stats.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 import {prettyPrintFileSize} from "@/utils/files.ts";
 import TOML from "smol-toml";
 import {requestAddCustomStat} from "@/utils/messages/add-custom-stat.ts";
+import {isUpdateLoadedCustomStatProperties} from "@/utils/messages/update-loaded-custom-stat-properties.ts";
+import {sendRequestLoadedCustomStatProperties} from "@/utils/messages/request-loaded-custom-stat-properties.ts";
 
 export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
@@ -137,7 +139,12 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
 }
 
 (async () => {
-    // await refreshCustomStats();
+    browser.runtime.onMessage.addListener(async message => {
+        if (isUpdateLoadedCustomStatProperties(message)) {
+            __setLOADED_CUSTOM_STAT_PROPERTIES(message.props);
+        }
+    });
+    __setLOADED_CUSTOM_STAT_PROPERTIES(await sendRequestLoadedCustomStatProperties());
     SAVANT_EXTRAS_CONFIG_STRING.getValue().then(async CONFIG_STRING => {
         const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
         const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;

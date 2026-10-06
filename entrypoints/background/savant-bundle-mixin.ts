@@ -74,7 +74,7 @@ function patchStatFormatting(src: string): string {
 export function initBundleMixin() {
     const PLAYER_ID_REGEX: RegExp = /savant-player\/[\w-]+?-(\d+)/;
 
-    browser.webRequest.onBeforeRequest.addListener(
+    if (import.meta.env.FIREFOX) browser.webRequest.onBeforeRequest.addListener(
         (details) => {
             const url = (details as any).originUrl as string;
             if (url !== undefined && !url.includes('://baseballsavant.mlb.com/savant-player/')) {

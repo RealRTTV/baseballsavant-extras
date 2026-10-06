@@ -15,6 +15,8 @@ import {
 import {isRequestRemoveCustomStatFile} from "@/utils/messages/remove-custom-stat-file.ts";
 import {removeCustomStatFile} from "@/entrypoints/background/custom-stats.ts";
 import {isRequestAddCustomStat} from "@/utils/messages/add-custom-stat.ts";
+import {isRequestLoadedCustomStatProperties} from "@/utils/messages/request-loaded-custom-stat-properties.ts";
+import {LOADED_CUSTOM_STAT_PROPERTIES} from "@/utils/custom-stats.ts";
 
 export default defineBackground(() => {
     (async () => {
@@ -48,6 +50,8 @@ function initMessageHandler() {
             return await removeCustomStatFile(message.filename);
         } else if (isRequestAddCustomStat(message)) {
             return await addCustomStat(message.filename, message.contents);
+        } else if (isRequestLoadedCustomStatProperties(message)) {
+            return LOADED_CUSTOM_STAT_PROPERTIES;
         } else if (isW2BRequestMessage(message)) {
             const payload = await handleW2BMessage(message);
             if (payload !== undefined) {

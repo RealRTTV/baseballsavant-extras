@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/*/scripts/build/index.js",
+      "resourceTypes": [
+        "script"
+      ]
+    }
+  }
+]

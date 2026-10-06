@@ -8,8 +8,14 @@ import {
 import {isExtendedPercentileProperty} from "@/utils/stats";
 import {prettyPrintTimeSince} from "@/utils/dates.ts";
 import type {WASMExports} from "@/utils/wasm.ts";
-import {__setLOADED_CUSTOM_STAT_PROPERTIES, CUSTOM_STATS_STORAGE, type CustomStatFile} from "@/utils/custom-stats.ts";
+import {
+    __setLOADED_CUSTOM_STAT_PROPERTIES,
+    CUSTOM_STATS_STORAGE,
+    type CustomStatFile,
+    LOADED_CUSTOM_STAT_PROPERTIES
+} from "@/utils/custom-stats.ts";
 import {sendB2WMessage} from "@/entrypoints/background/worker.ts";
+import {sendUpdateLoadedCustomStatProperties} from "@/utils/messages/update-loaded-custom-stat-properties.ts";
 
 let LOADED_CUSTOM_STATS: CustomStat<any, any>[] = [];
 
@@ -180,9 +186,11 @@ async function parseStorage(record: Record<string, CustomStatFile>) {
             }
         }
     }
+
     STAT_TO_FILENAME_MAP = statToFilenameMap;
     LOADED_CUSTOM_STATS = customStats;
     __setLOADED_CUSTOM_STAT_PROPERTIES(customStats.map(stat => stat.property));
+    await sendUpdateLoadedCustomStatProperties(LOADED_CUSTOM_STAT_PROPERTIES);
 
 }
 

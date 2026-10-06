@@ -29,3 +29,5 @@ rust-wasm/pkg
 *.njsproj
 *.sln
 *.sw?
+
+rust-wasm/target
