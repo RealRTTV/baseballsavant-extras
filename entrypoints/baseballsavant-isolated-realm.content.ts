@@ -6,7 +6,7 @@ export default defineContentScript({
     runAt: 'document_end',
     main(ctx) {
         const allScripts = Array.from(document.body.querySelectorAll('script')).map(script => script.src);
-        const bundleUrl = allScripts.find(href => href.startsWith('https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds') && href.endsWith("index.js"))!;
+        const bundleUrl = allScripts.find(href => href.startsWith('https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/') && href.endsWith("/scripts/build/index.js"))!;
 
         (async () => {
             const response = requestMixinCode(window.location.href, bundleUrl);

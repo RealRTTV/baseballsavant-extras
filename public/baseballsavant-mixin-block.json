@@ -6,7 +6,7 @@
       "type": "block"
     },
     "condition": {
-      "urlFilter": "||builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/*/scripts/build/index.js",
+      "urlFilter": "https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/*/scripts/build/index.js",
       "initiatorDomains": ["baseballsavant.mlb.com"],
       "resourceTypes": [
         "script"
