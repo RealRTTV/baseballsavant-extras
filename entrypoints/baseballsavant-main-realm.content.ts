@@ -3,7 +3,7 @@ import {isResponseMixinCode} from "@/utils/messages/response-mixin-code.ts";
 export default defineContentScript({
     matches: ['*://baseballsavant.mlb.com/savant-player/*'],
     world: 'MAIN',
-    runAt: 'document_end',
+    runAt: 'document_idle',
     async main() {
         const response: Promise<string> = new Promise((resolve, reject) => {
             window.postMessage("baseballsavant-extras:request-src", "*");

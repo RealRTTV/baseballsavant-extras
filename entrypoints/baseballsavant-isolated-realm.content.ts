@@ -3,15 +3,10 @@ import {requestMixinCode} from "@/utils/messages/request-mixin-code.ts";
 export default defineContentScript({
     matches: ['*://baseballsavant.mlb.com/savant-player/*'],
     world: 'ISOLATED',
-    runAt: 'document_start',
+    runAt: 'document_end',
     main(ctx) {
-        const bundleUrl = "https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/728cc30ffd5e8500395b60ab4225480405329885/scripts/build/index.js";
-
-        // const url = new Promise(resolve => {
-            ctx.addEventListener(window, 'error', event => {
-                console.log(event);
-            });
-        // });
+        const allScripts = Array.from(document.body.querySelectorAll('script')).map(script => script.src);
+        const bundleUrl = allScripts.find(href => href.startsWith('https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds') && href.endsWith("index.js"))!;
 
         (async () => {
             const response = requestMixinCode(window.location.href, bundleUrl);
