@@ -112,7 +112,7 @@ type SeasonCache = {
 
 export const DISTRIBUTION_METRICS: Record<string, { mean: number, stdev: number, qual: number }> = {};
 
-async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
+export async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
     return openDB<StatcastDB>('statcast-data', 1, {
         upgrade(db) {
             db.createObjectStore('date');
@@ -143,7 +143,7 @@ async function purgeOutdatedSubsidiaryCaches(db: IDBPDatabase<StatcastDB>) {
 
     for (const season of getConfig().activeSeasons) {
         const cache = await getSeasonCache(season, db);
-        if (version === undefined || cache.cachedSubsidiaryVersion >= version) {
+        if (version === undefined || cache.cachedSubsidiaryVersion === undefined || cache.cachedSubsidiaryVersion >= version) {
             continue;
         }
 
@@ -161,6 +161,7 @@ async function purgeOutdatedSubsidiaryCaches(db: IDBPDatabase<StatcastDB>) {
 
         cache.cachedSubsidiaryDates = [];
         cache.cachedSubsidiaryVersion = version;
+        await db.put('season', cache, String(season));
     }
 }
 
