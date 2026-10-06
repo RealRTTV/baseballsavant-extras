@@ -3,9 +3,9 @@ import {purgeSeason} from "@/entrypoints/background/statcast-helper.ts";
 import type {StatcastDB} from "@/entrypoints/background/statcast.ts";
 import {openDB} from "idb";
 import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statcast-data-calculations.ts";
-import {removeCustomStatFile} from "@/utils/custom-stats.ts";
 import wasmLogoUrl from '@/assets/wasm-logo.svg?url';
 import jsLogoUrl from '@/assets/js-logo.svg?url';
+import {requestRemoveCustomStatFile} from "@/utils/messages/remove-custom-stat-file.ts";
 
 async function onPurge(season: number, div: HTMLDivElement): Promise<void> {
     const db = await openDB<StatcastDB>('statcast-data');
@@ -36,7 +36,7 @@ export function createCustomStatsEntry(filename: string): HTMLDivElement {
 </div>
     `;
     const deleteButton: HTMLSpanElement = div.querySelector('span.delete-button')!;
-    deleteButton.addEventListener('mouseup', async () => await removeCustomStatFile(filename));
+    deleteButton.addEventListener('mouseup', async () => await requestRemoveCustomStatFile(filename));
     return div;
 }
 

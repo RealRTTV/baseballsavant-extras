@@ -6,7 +6,7 @@ import {
 } from "@/entrypoints/background/statcast";
 import {getConfig} from "@/utils/config.ts";
 import {getDistributionData, getStatFromDB} from "@/entrypoints/background/statcast-helper.ts";
-import {getCustomStatForName} from "@/utils/custom-stats.ts";
+import {getCustomStatForName} from "@/entrypoints/background/custom-stats.ts";
 
 export async function createServerValsPatch(playerId: number): Promise<ServerValsPatch> {
     const patches: ServerValsPatch = {
@@ -24,7 +24,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
             const { mean, stdev, qual } = getDistributionData(stat, season)!;
-            const value: number | null = statValue === undefined ? null : statInstance.value(statValue);
+            const value: number | null = statValue === undefined ? null : await statInstance.value(statValue);
             const zScore: number | null = value == null ? null : stat.invert === true ? (mean - value) / stdev : (value - mean) / stdev;
             const percentile: number | null = zScore === null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
 

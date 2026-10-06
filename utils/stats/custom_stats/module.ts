@@ -32,6 +32,22 @@ export interface WASMCustomStat<T extends object | string, Cache extends BaseCac
 export interface JSCustomStat<T extends object | string, Cache extends BaseCache<T> = BaseCache<T>> {
     property: ExtendedPercentileProperty;
 
+    create_cache(): Promise<Cache>;
+
+    on_incremental(cache: Cache): Promise<void>;
+
+    apply(cache: Cache, rows: Uint8Array<ArrayBuffer>, subsidiary_rows: Uint8Array<ArrayBuffer> | undefined | null): Promise<void>;
+
+    on_finish_apply(cache: Cache): Promise<'rerun' | false>;
+
+    value(value: T): Promise<number>;
+
+    samples(value: T): Promise<number>;
+}
+
+export interface JSCustomStatInternal<T extends object | string, Cache extends BaseCache<T> = BaseCache<T>> {
+    property: ExtendedPercentileProperty;
+
     create_cache(): Cache;
 
     on_incremental(cache: Cache): void;
@@ -66,4 +82,9 @@ export function isJSCustomStat(value: any): value is JSCustomStat<any, any> {
         && typeof value.on_finish_apply === "function"
         && typeof value.value === "function"
         && typeof value.samples === "function"
+}
+
+export function isJSCustomStatInternal(value: any): value is JSCustomStatInternal<any, any> {
+    // identical-looking as of rn without getting the parameter types, which isn't available at runtime in js.
+    return isJSCustomStat(value);
 }

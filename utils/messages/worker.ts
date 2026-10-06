@@ -1,4 +1,6 @@
 /// Worker to Background Request Message
+import type {ExtendedPercentileProperty} from "@/utils/stats";
+
 export type W2BRequestMessage = {
     payload: { requestedBytesForDate: string } | { requestedSubsidiaryBytesForDate: string } | { test2: string },
     message: string;
@@ -26,7 +28,15 @@ export function isW2BResponseMessage(type: any): type is W2BResponseMessage {
 
 /// Background to Worker Request Message
 export type B2WRequestMessage = {
-    payload: { test: string };
+    payload:
+        { registerCustomStatFromSrc: string, filename: string }
+      | { removeCustomStatByFilename: string }
+      | { createCacheFor: string }
+      | { onIncremental: string, cache: any }
+      | { apply: string, cache: any, rows: Uint8Array<ArrayBuffer>, subsidiaryRows: Uint8Array<ArrayBuffer> | undefined | null }
+      | { onFinishApply: string, cache: any }
+      | { valueFor: string, value: any }
+      | { samplesFor: string, value: any };
     message: string;
     uuid: string;
 }
@@ -39,7 +49,12 @@ export function isB2WRequestMessage(type: any): type is B2WRequestMessage {
 
 /// Background to Worker Response Message
 export type B2WResponseMessage = {
-    payload: { test: string };
+    payload: { error: string }
+        | { registerCustomStatFromSrcPercentileProperties: ExtendedPercentileProperty[] }
+        | { createCacheFor: any }
+        | { onFinishApply: false | 'rerun' }
+        | { valueFor: number }
+        | { samplesFor: number };
     message: string;
     uuid: string;
 }

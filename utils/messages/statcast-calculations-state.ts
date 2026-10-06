@@ -1,14 +1,14 @@
-// for<T: * realm> T realm -> background realm -> T realm
+// for<T: realm> T realm -> background realm -> T realm
 
 import type {CURRENT_TASK_QUEUE_STATE} from "@/entrypoints/background/statcast.ts";
 
-const MESSAGE_NAME: string = 'baseballsavant-extras:statcast-calculations-state';
+const MESSAGE_NAME = 'baseballsavant-extras:statcast-calculations-state';
 
 export type StatcastCalculationsState = {
-    message: string;
+    message: typeof MESSAGE_NAME;
 }
 
-export function isStatcastCalculationsState(type: any): boolean {
+export function isStatcastCalculationsState(type: any): type is StatcastCalculationsState {
     return (typeof type === 'object' && type['message'] === MESSAGE_NAME);
 }
 

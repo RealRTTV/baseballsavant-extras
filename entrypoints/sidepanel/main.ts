@@ -15,10 +15,11 @@ import {requestRerunStatcastDataCalculations} from "@/utils/messages/rerun-statc
 import {openDB} from "idb";
 import {getCachedSeasons, getFileSizeForSeason} from "@/entrypoints/background/statcast-helper.ts";
 import {createCalculatedSeason, createCustomStatsEntry} from "@/entrypoints/sidepanel/html-generation.ts";
-import {addCustomStat, CUSTOM_STATS_STORAGE, refreshCustomStats, STAT_TO_FILENAME_MAP} from "@/utils/custom-stats.ts";
+import {CUSTOM_STATS_STORAGE} from "@/utils/custom-stats.ts";
 import {requestStatcastCalculationsState} from "@/utils/messages/statcast-calculations-state.ts";
 import {prettyPrintFileSize} from "@/utils/files.ts";
 import TOML from "smol-toml";
+import {requestAddCustomStat} from "@/utils/messages/add-custom-stat.ts";
 
 export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
@@ -52,7 +53,7 @@ function initDragAndDrop() {
         customStats.classList.remove('is-dragging');
         const files = e.dataTransfer?.files!;
         for (const file of files) {
-            await addCustomStat(file.name, await file.bytes());
+            await requestAddCustomStat(file.name, await file.bytes());
         }
     });
 
@@ -128,8 +129,7 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
         const element = getCachedSeasonForYear(cachedSeasons, season);
         element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
     } else if ('calculatingStat' in state) {
-        const stat = state.calculatingStat;
-        const filename = STAT_TO_FILENAME_MAP[stat] ?? '';
+        const filename = state.calculatingStat;
         const elements = Array.from(document.querySelectorAll('.custom-stats-entry-wrapper'));
         const element = elements.find(e => e.querySelector('.custom-stats-entry-name')!.innerHTML === filename);
         element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
@@ -137,7 +137,7 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
 }
 
 (async () => {
-    await refreshCustomStats();
+    // await refreshCustomStats();
     SAVANT_EXTRAS_CONFIG_STRING.getValue().then(async CONFIG_STRING => {
         const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
         const CONFIG = CONFIG_STRING || DEFAULT_CONFIG;
