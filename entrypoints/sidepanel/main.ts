@@ -139,7 +139,7 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
 }
 
 (async () => {
-    browser.runtime.onMessage.addListener(async message => {
+    browser.runtime.onMessage.addListener(message => {
         if (isUpdateLoadedCustomStatProperties(message)) {
             __setLOADED_CUSTOM_STAT_PROPERTIES(message.props);
         }
