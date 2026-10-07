@@ -32,6 +32,7 @@ export function createCustomStatsEntry(filename: string): HTMLDivElement {
 <div class="custom-stats-entry">
     ${imgHTML}
     <span class="custom-stats-entry-name" title="${filename}">${filename}</span>
+    <span class="custom-stats-entry-portion"></span>
     <span class="delete-button">&times;</span>
 </div>
     `;

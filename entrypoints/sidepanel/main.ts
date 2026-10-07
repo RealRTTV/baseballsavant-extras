@@ -25,17 +25,11 @@ import {sendRequestLoadedCustomStatProperties} from "@/utils/messages/request-lo
 
 export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
-        console.log('a');
         const toml = TOML.parse(textarea.value);
-        console.log('b');
         const config = __parseConfig(toml);
-        console.log('c');
         await SAVANT_EXTRAS_CONFIG_STRING.setValue(textarea.value).catch(e => setTextareaConsoleError(e));
-        console.log('d');
         __setCurrentConfig(config);
-        console.log('e');
         requestRerunStatcastDataCalculations();
-        console.log('f');
         setTextareaConsoleSuccess();
     } catch (e: any) {
         setTextareaConsoleError(e.message);
@@ -125,6 +119,7 @@ async function updateCachedSeasonFileSizes(fetchFileSizes: boolean) {
 async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK_QUEUE_STATE>) {
     const state = await statePromise;
     document.querySelectorAll('.section-border-loading-animation-rect').forEach(e => e.classList.remove('is-loading'));
+    document.querySelectorAll('span.custom-stats-entry-portion').forEach(e => e.innerHTML = '');
     if (state === 'idle') {
         // do nothing
     } else if ('downloadingSeason' in state) {
@@ -134,9 +129,14 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
         element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
     } else if ('calculatingStat' in state) {
         const filename = state.calculatingStat;
+        const [numer, denom] = [state.progressNumerator, state.progressDenominator];
         const elements = Array.from(document.querySelectorAll('.custom-stats-entry-wrapper'));
         const element = elements.find(e => e.querySelector('.custom-stats-entry-name')!.innerHTML === filename);
         element?.querySelector('.section-border-loading-animation-rect')?.classList.add('is-loading');
+        const portion = element?.querySelector('span.custom-stats-entry-portion');
+        if (portion != null) {
+            portion.innerHTML = `${numer} / ${denom}`;
+        }
     }
 }
 
@@ -165,5 +165,5 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
     await initConfig();
     initDragAndDrop();
     updateCachedSeasons(false).then(_ => updateCachedSeasons(true));
-    setInterval(() => updateCachedSeasons(true), 1000);
+    setInterval(() => updateCachedSeasons(true), 250);
 })()

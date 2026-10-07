@@ -20,7 +20,7 @@
 }
 
 .delete-button {
-    margin-left: auto;
+    margin-left: 8px;
     width: 12px;
     height: 12px;
     border-radius: 2px;
@@ -71,8 +71,17 @@
 .custom-stats-entry-name {
     font-size: 12px;
     font-family: 'Roboto Mono', monospace;
-    max-width: calc(100% - 20px);
+    max-width: calc(100% - 80px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.custom-stats-entry-portion {
+    margin-left: auto;
+    font-size: 12px;
+    font-family: 'Roboto Mono', monospace;
+    color: var(--light-gray);
+    white-space: nowrap;
+    overflow: hidden;
 }

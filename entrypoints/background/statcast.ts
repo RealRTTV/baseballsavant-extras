@@ -20,7 +20,7 @@ import {
 const TASK_QUEUE_QUEUE = new PQueue({ concurrency: 1 });
 const TASK_QUEUE = new PQueue({ concurrency: 1 });
 
-export let CURRENT_TASK_QUEUE_STATE: 'idle' | { downloadingSeason: number } | { calculatingStat: string } = 'idle';
+export let CURRENT_TASK_QUEUE_STATE: 'idle' | { downloadingSeason: number } | { calculatingStat: string, progressNumerator: number, progressDenominator: number } = 'idle';
 
 /**
  * A queue for a queue (a little unnecessary)
@@ -177,8 +177,17 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
     console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
     const cache: Cache = (await db.get('stats', [season, stat.property.value])) as Cache ?? await stat.create_cache();
-
     const newDates = seasonDates(season).filter(date => !cache.cached_dates.includes(date)).toArray();
+    let numComplete = 0;
+    const setState = () => {
+        CURRENT_TASK_QUEUE_STATE = {
+            calculatingStat: STAT_TO_FILENAME_MAP[stat.property.value] ?? '',
+            progressNumerator: numComplete,
+            progressDenominator: newDates.length,
+        };
+    }
+
+    setState();
 
     if (newDates.length > 0) {
         await stat.on_incremental(cache);
@@ -188,6 +197,8 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
             for (const date of newDates) {
                 const csv = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(csv)) {
+                    numComplete += 1;
+                    setState();
                     continue
                 }
 
@@ -195,6 +206,8 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
                 await stat.apply(cache, csv, subsidiaryCsv);
                 cache.cached_dates.push(date);
                 await db.put('stats', cache, [season, stat.property.value]);
+                numComplete += 1;
+                setState();
             }
         } while (await stat.on_finish_apply(cache) === 'rerun');
     }
@@ -214,6 +227,17 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
 
     const newDates = seasonDates(season).filter(date => !cachedDates.includes(date)).toArray();
 
+    let numComplete = 0;
+    const setState = () => {
+        CURRENT_TASK_QUEUE_STATE = {
+            calculatingStat: STAT_TO_FILENAME_MAP[stat.property.value] ?? '',
+            progressNumerator: numComplete,
+            progressDenominator: newDates.length,
+        };
+    }
+
+    setState();
+
     if (newDates.length > 0) {
         if (cacheInDB) cacheInDB.qualification_threshold = undefined;
         stat.deserialize_cache(cacheInDB);
@@ -223,6 +247,8 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
             for (const date of newDates) {
                 const bytes = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(bytes)) {
+                    numComplete += 1;
+                    setState();
                     continue;
                 }
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
@@ -231,6 +257,8 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
                 cache.cached_dates.push(date);
                 stat.deserialize_cache(cache);
                 await db.put('stats', cache, [season, stat.property.value]);
+                numComplete += 1;
+                setState();
             }
         } while (stat.on_finish_apply() === 'rerun');
     }
@@ -249,7 +277,6 @@ function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise
     const tasks = [];
     for (const stat of getConfig().activeStats) {
         for (const season of getConfig().activeSeasons) {
-            tasks.push(async () => { CURRENT_TASK_QUEUE_STATE = { calculatingStat: STAT_TO_FILENAME_MAP[stat.value] ?? '' } });
             tasks.push(async () => {
                 const statInstance = getCustomStatForName(stat.value)!;
                 if (isJSCustomStat(statInstance)) {
