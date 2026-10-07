@@ -233,16 +233,29 @@ export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuff
     CUSTOM_STATS[name] = { src: contents, lastUpdated: new Date() };
 }
 
-export function qualificationThreshold<T extends object | string, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): number {
-    return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => (stat as any).samples(instance))));
+export function qualificationThresholdWASM<T extends object | string, Cache extends BaseCache<T>>(stat: WASMCustomStat<T, Cache>, cache: Cache): number {
+    return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => stat.samples(instance))));
 }
 
-export function distributionData<T extends object | string, Cache extends BaseCache<T>>(stat: CustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
-    const threshold: number = (cache.qualification_threshold ??= qualificationThreshold(stat, cache));
-    if (isWASMCustomStat(stat)) {
-        stat.deserialize_cache(cache);
-    }
-    const values: number[] = Object.values(cache.by_player).filter(instance => (stat as any).samples(instance) >= threshold).map((stat as any).value);
+export function distributionDataWASM<T extends object | string, Cache extends BaseCache<T>>(stat: WASMCustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
+    const threshold: number = (cache.qualification_threshold ??= qualificationThresholdWASM(stat, cache));
+    stat.deserialize_cache(cache);
+    const values: number[] = Object.values(cache.by_player).filter(instance => stat.samples(instance) >= threshold).map(stat.value);
+
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;
+
+    return { mean, stdev: Math.sqrt(variance), qual: threshold };
+}
+
+export async function qualificationThresholdJS<T extends object | string, Cache extends BaseCache<T>>(stat: JSCustomStat<T, Cache>, cache: Cache): Promise<number> {
+    return Math.floor(0.25 * Math.max(...await Promise.all(Object.values(cache.by_player).map(instance => stat.samples(instance)))));
+}
+
+export async function distributionDataJS<T extends object | string, Cache extends BaseCache<T>>(stat: JSCustomStat<T, Cache>, cache: Cache): Promise<{ mean: number, stdev: number, qual: number }> {
+    const threshold: number = (cache.qualification_threshold ??= await qualificationThresholdJS(stat, cache));
+    const samples: number[] = await Promise.all(Object.values(cache.by_player).map(instance => stat.samples(instance)));
+    const values: number[] = await Promise.all(Object.values(cache.by_player).filter((instance, idx) => samples[idx] ?? Number.NEGATIVE_INFINITY >= threshold).map(stat.value));
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance = values.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / values.length;

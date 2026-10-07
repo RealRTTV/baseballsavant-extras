@@ -52,7 +52,7 @@ export interface JSCustomStatInternal<T extends object | string, Cache extends B
 
     on_incremental(cache: Cache): void;
 
-    apply(cache: Cache, rows: StatcastRow[], subsidiary_rows: SubsidiaryRow[] | undefined | null): Cache;
+    apply(cache: Cache, rows: StatcastRow[], subsidiary_rows: SubsidiaryRow[] | undefined | null): void;
 
     on_finish_apply(cache: Cache): 'rerun' | false;
 

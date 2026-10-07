@@ -7,7 +7,7 @@ import {
     getDaySubsidiaryFromURL,
     seasonDates
 } from "@/entrypoints/background/statcast-helper.ts";
-import {distributionData, getCustomStatForName, STAT_TO_FILENAME_MAP} from "@/entrypoints/background/custom-stats.ts";
+import {distributionDataJS, distributionDataWASM, getCustomStatForName, STAT_TO_FILENAME_MAP} from "@/entrypoints/background/custom-stats.ts";
 import {
     type BaseCache,
     isJSCustomStat,
@@ -189,13 +189,12 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
                 let subsidiaryCsv = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 await stat.apply(cache, csv, subsidiaryCsv);
                 cache.cached_dates.push(date);
-                console.log(JSON.stringify(cache));
                 await db.put('stats', cache, [season, stat.property.value]);
             }
         } while (await stat.on_finish_apply(cache) === 'rerun');
     }
 
-    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache);
+    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = await distributionDataJS(stat, cache);
     console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
     console.log(`[JS] Calculated ${stat.property.value} for ${season}`);
@@ -231,7 +230,7 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
     cache.cached_dates.push(...newDates);
     stat.deserialize_cache(cache);
 
-    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache);
+    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionDataWASM(stat, cache);
     console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
     await db.put('stats', cache, [season, stat.property.value]);

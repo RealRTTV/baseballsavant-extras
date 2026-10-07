@@ -85,7 +85,7 @@ window.addEventListener('message', async event => {
     if ('createCacheFor' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.createCacheFor);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.createCacheFor} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.createCacheFor} does not exist.` }, event);
             return true;
         }
         respondToB2WMessage({
@@ -97,7 +97,7 @@ window.addEventListener('message', async event => {
     if ('onIncremental' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.onIncremental);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.onIncremental} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.onIncremental} does not exist.` }, event);
             return true;
         }
         stat.on_incremental(payload.cache);
@@ -108,14 +108,13 @@ window.addEventListener('message', async event => {
     if ('apply' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.apply);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.apply} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.apply} does not exist.` }, event);
             return true;
         }
+
         const rows = Papa.parse<StatcastRow>(payload.rows, { header: true, dynamicTyping: true });
         const subsidiaryRows = payload.subsidiaryRows == null ? null : Papa.parse<SubsidiaryRow>(payload.subsidiaryRows, { header: true, dynamicTyping: true });
-        console.log(JSON.stringify(rows.data[0]));
-        console.log(stat.apply(payload.cache, rows.data, subsidiaryRows?.data));
-        console.log(JSON.stringify(payload.cache.by_player))
+        stat.apply(payload.cache, rows.data, subsidiaryRows?.data);
         respondToB2WMessage({ cacheUpdate: payload.cache }, event);
         return true;
     }
@@ -123,9 +122,10 @@ window.addEventListener('message', async event => {
     if ('onFinishApply' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.onFinishApply);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.onFinishApply} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.onFinishApply} does not exist.` }, event);
             return true;
         }
+
         respondToB2WMessage({
             onFinishApply: stat.on_finish_apply(payload.cache),
             cacheUpdate: payload.cache,
@@ -136,7 +136,7 @@ window.addEventListener('message', async event => {
     if ('valueFor' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.valueFor);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.valueFor} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.valueFor} does not exist.` }, event);
             return true;
         }
         respondToB2WMessage({
@@ -148,7 +148,7 @@ window.addEventListener('message', async event => {
     if ('samplesFor' in payload) {
         const stat = REGISTERED_CUSTOM_STATS_BY_NAME.get(payload.samplesFor);
         if (stat === undefined) {
-            respondToB2WMessage({ error: `stat ${payload.samplesFor} does not exist. list is [${Array.from(REGISTERED_CUSTOM_STATS_BY_NAME.values().map(s => s.property.value))}]` }, event);
+            respondToB2WMessage({ error: `stat ${payload.samplesFor} does not exist.` }, event);
             return true;
         }
         respondToB2WMessage({
