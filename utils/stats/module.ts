@@ -25,6 +25,9 @@ export type PercentileProperty = {
 
     /** Means that lower is better */
     invert?: boolean,
+
+    /** Description of the stat */
+    description?: string,
 };
 
 export type ExtendedPercentileProperty = PercentileProperty & {

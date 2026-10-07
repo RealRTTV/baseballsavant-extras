@@ -1,11 +1,11 @@
 import TOML, {type TomlTable} from "smol-toml";
-import * as BATTING_VALUE from "@/utils/stats/batting_value.ts";
+import * as BATTING_VALUE from "@/utils/stats/batting-value";
 import * as BATTING_AND_PITCHING from "@/utils/stats/batting-and-pitching.ts";
 import * as BATTING_ONLY from "@/utils/stats/batting.ts";
 import * as CATCHING from "@/utils/stats/catching.ts";
 import * as FIELDING from "@/utils/stats/fielding.ts";
 import * as BASERUNNING from "@/utils/stats/baserunning.ts";
-import * as PITCHING_VALUE from "@/utils/stats/pitcher_value.ts";
+import * as PITCHING_VALUE from "@/utils/stats/pitcher-value";
 import * as PITCHING_ONLY from "@/utils/stats/pitching.ts";
 import type {ExtendedPercentileProperty, PercentileProperty, PercentileSpec} from "@/utils/stats";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";
