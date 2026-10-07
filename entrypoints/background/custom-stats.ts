@@ -1,7 +1,6 @@
 import {
     type BaseCache,
     type CustomStat,
-    isWASMCustomStat,
     type JSCustomStat,
     type WASMCustomStat
 } from "@/utils/stats/custom_stats";
@@ -176,7 +175,8 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
 async function parseStorage(record: Record<string, CustomStatFile>) {
     const customStats: CustomStat<any>[] = [];
     const statToFilenameMap: Record<string, string> = {};
-    for (const [filename, { src }] of Object.entries(record)) {
+    for (const [filename, { srcBase64 }] of Object.entries(record)) {
+        const src = Uint8Array.fromBase64(srcBase64);
         let values: CustomStat<any, any>[] = [];
         try {
             if (filename.endsWith('.js')) {
@@ -218,11 +218,16 @@ export function getCustomStatForName(name: string): CustomStat<any, any> | undef
 }
 
 export async function removeCustomStatFile(filename: string) {
+    console.log(`deleting... ${filename}`);
     const value = await CUSTOM_STATS_STORAGE.getValue();
+    console.trace();
     delete value[filename];
     // watchers should run; no need to run parseStorage
+    console.trace();
     await CUSTOM_STATS_STORAGE.setValue(value);
+    console.trace();
     await sendB2WMessage({ removeCustomStatByFilename: filename });
+    console.trace();
 }
 
 export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuffer>) {
@@ -230,7 +235,7 @@ export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuff
     if (name in CUSTOM_STATS) {
         console.info(`Custom Stat '${name}' already exists (created ${prettyPrintTimeSince(CUSTOM_STATS[name]!.lastUpdated)}), replacing...`);
     }
-    CUSTOM_STATS[name] = { src: contents, lastUpdated: new Date() };
+    CUSTOM_STATS[name] = { srcBase64: contents.toBase64(), lastUpdated: new Date() };
 }
 
 export function qualificationThresholdWASM<T extends object | string, Cache extends BaseCache<T>>(stat: WASMCustomStat<T, Cache>, cache: Cache): number {

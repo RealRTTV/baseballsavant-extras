@@ -27,7 +27,7 @@ export function createCustomStatsEntry(filename: string): HTMLDivElement {
     div.innerHTML = `
 <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-color: var(--light-gray); --border-radius: 4px; --border-width: 2px">
     <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-    <rect class="section-border-loading-animation-rect is-loading" x="0" y="0" width="100%" height="100%" fill="none" stroke="${colorCode}" pathLength="100" stroke-dasharray="15 85"/>
+    <rect class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="${colorCode}" pathLength="100" stroke-dasharray="15 85"/>
 </svg>
 <div class="custom-stats-entry">
     ${imgHTML}
@@ -48,7 +48,7 @@ export function createCalculatedSeason(season: number, file_size?: number): HTML
     ${season}
     <svg class="section-border-loading-animation" preserveAspectRatio="none" style="--border-radius: 4px; --border-width: 1px">
         <rect class="section-border-background-rect" x="0" y="0" width="100%" height="100%" fill="none" pathLength="100"/>
-        <rect class="section-border-loading-animation-rect is-loading" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
+        <rect class="section-border-loading-animation-rect" x="0" y="0" width="100%" height="100%" fill="none" stroke="#7DD3FC" pathLength="100" stroke-dasharray="15 85"/>
     </svg>
 </span>
 <span class="cached-season-file-size">${file_size === undefined ? '- - - . - MB' : prettyPrintFileSize(file_size)}</span>

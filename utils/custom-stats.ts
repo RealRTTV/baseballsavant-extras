@@ -8,22 +8,22 @@ import missDistanceWASMFileContents from '@/.output/custom_stats/miss_distance.w
 import type {ExtendedPercentileProperty} from "@/utils/stats";
 
 export type CustomStatFile = {
-    src: Uint8Array<ArrayBuffer>;
+    srcBase64: string;
     lastUpdated: Date,
 };
 
 export const CUSTOM_STATS_STORAGE = storage.defineItem<Record<string, CustomStatFile>>('local:custom-stats', {
     fallback: {
         'first-pitch-strike.js': {
-            src: firstPitchStrikeJSFileContents,
+            srcBase64: firstPitchStrikeJSFileContents.toBase64(),
             lastUpdated: new Date(),
         },
         // 'first-pitch-strike.wasm': {
-        //     src: firstPitchStrikeWASMFileContents,
+        //     srcBase64: firstPitchStrikeWASMFileContents.toBase64(),
         //     lastUpdated: new Date(),
         // },
         'miss-distance.wasm': {
-            src: missDistanceWASMFileContents,
+            srcBase64: missDistanceWASMFileContents.toBase64(),
             lastUpdated: new Date(),
         },
     }

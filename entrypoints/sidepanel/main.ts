@@ -64,6 +64,7 @@ function initDragAndDrop() {
         customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
     });
     CUSTOM_STATS_STORAGE.watch(map => {
+        console.log('storage updated');
         customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
     });
 }
