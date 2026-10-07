@@ -15,6 +15,8 @@ Baseball Savant Extras is operated entirely by its [sidebar](https://developer.m
 
 MLB actually provides more stats than what is typically shown (such as EV50), the full list of these built-in stats can be found [here](BUILTIN_MLB_STATS.md).
 
+Custom stats are registered here with their internal name (ex: `miss_distance` or `first_pitch_strike`)
+
 Note: As of right now, if MLB comes out with new stats for their webpage, this list will not automatically add it, you'll need to be aware what the new stat's internal name is (likely by checking [ALL_BUILTIN_STATS.md](BUILTIN_MLB_STATS.md)) and add it yourself.
 
 ## `[active-seasons]`
@@ -29,3 +31,8 @@ Note: The file sizes shown are their uncompressed sizes. Your browser will apply
 `[active-stats]` stores the list of custom stats that will be actively calculcated and kept up-to-date.
 
 # Custom Stats
+Custom Stats are the main feature of Baseball Savant Extras. On the "Installed Custom Stats" pane, you can drag and drop valid JS & WASM files defining custom stats. These stats will automatically take downloaded play-by-play data from select seasons (if enabled in `[active-stats]`), and run their statistical analysis on it to produce their results.
+
+As can be seen above in the sidebar screenshot. The `first-pitch-strike.js` file is currently running through 206 downloaded dates, once it's complete it will be visible on pages implementing it.
+
+If you wish to develop your own custom stats or learn more about how they work under the hood, see [MAKING_CUSTOM_STATS_JS.md](MAKING_CUSTOM_STATS_JS.md) or [MAKING_CUSTOM_STATS_WASM.md](MAKING_CUSTOM_STATS_WASM.md).
