@@ -6,18 +6,18 @@ An extension for Baseball Savant to add custom stats.
 # Usage
 Baseball Savant Extras is operated entirely by its [sidebar](https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Page_structures/Sidebars).
 
-<img src="README_assets/sidebar.webp" width=400>
+<img src="markdown/sidebar.webp" width=400>
 
 `config.toml` holds the general config for baseballsavant-extras in a [TOML](https://toml.io/en/) format.
 
 ## `[percentiles]`
 `[percentiles]` holds the percentile stats names to be shown for each section.
 
-MLB actually provides more stats than what is typically shown (such as EV50), the full list of these built-in stats can be found [here](BUILTIN_MLB_STATS.md).
+MLB actually provides more stats than what is typically shown (such as EV50), the full list of these built-in stats can be found [here](markdown/BUILTIN_MLB_STATS.md).
 
 Custom stats are registered here with their internal name (ex: `miss_distance` or `first_pitch_strike`)
 
-Note: As of right now, if MLB comes out with new stats for their webpage, this list will not automatically add it, you'll need to be aware what the new stat's internal name is (likely by checking [ALL_BUILTIN_STATS.md](BUILTIN_MLB_STATS.md)) and add it yourself.
+Note: As of right now, if MLB comes out with new stats for their webpage, this list will not automatically add it, you'll need to be aware what the new stat's internal name is (likely by checking [BUILTIN_MLB_STATS.md](markdown/BUILTIN_MLB_STATS.md)) and add it yourself.
 
 ## `[active-seasons]`
 `[active-seasons]` stores the settings for which seasons to download locally for custom stat calculcations (see [Custom Stats](#custom-stats) for more details).
@@ -35,4 +35,4 @@ Custom Stats are the main feature of Baseball Savant Extras. On the "Installed C
 
 As can be seen above in the sidebar screenshot. The `first-pitch-strike.js` file is currently running through 206 downloaded dates, once it's complete it will be visible on pages implementing it.
 
-If you wish to develop your own custom stats or learn more about how they work under the hood, see [MAKING_CUSTOM_STATS_JS.md](MAKING_CUSTOM_STATS_JS.md) or [MAKING_CUSTOM_STATS_WASM.md](MAKING_CUSTOM_STATS_WASM.md).
+If you wish to develop your own custom stats or learn more about how they work under the hood, see [MAKING_CUSTOM_STATS.md](markdown/MAKING_CUSTOM_STATS.md)
