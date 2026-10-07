@@ -218,16 +218,11 @@ export function getCustomStatForName(name: string): CustomStat<any, any> | undef
 }
 
 export async function removeCustomStatFile(filename: string) {
-    console.log(`deleting... ${filename}`);
     const value = await CUSTOM_STATS_STORAGE.getValue();
-    console.trace();
     delete value[filename];
     // watchers should run; no need to run parseStorage
-    console.trace();
     await CUSTOM_STATS_STORAGE.setValue(value);
-    console.trace();
     await sendB2WMessage({ removeCustomStatByFilename: filename });
-    console.trace();
 }
 
 export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuffer>) {

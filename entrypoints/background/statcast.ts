@@ -5,6 +5,7 @@ import {
     getDayBytesFromDB,
     getDayFromURL, getDaySubsidiaryBytesFromDB,
     getDaySubsidiaryFromURL,
+    isEmptyDay,
     seasonDates
 } from "@/entrypoints/background/statcast-helper.ts";
 import {distributionDataJS, distributionDataWASM, getCustomStatForName, STAT_TO_FILENAME_MAP} from "@/entrypoints/background/custom-stats.ts";
@@ -186,6 +187,10 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
         do {
             for (const date of newDates) {
                 const csv = await getDayBytesFromDB(date, db);
+                if (isEmptyDay(csv)) {
+                    continue
+                }
+
                 let subsidiaryCsv = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 await stat.apply(cache, csv, subsidiaryCsv);
                 cache.cached_dates.push(date);
@@ -217,22 +222,22 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
         do {
             for (const date of newDates) {
                 const bytes = await getDayBytesFromDB(date, db);
-                let subsidiaryBytes = null;
-                if (stat.property.wants_subsidiary_csv) {
-                    subsidiaryBytes = await getDaySubsidiaryBytesFromDB(date, db);
+                if (isEmptyDay(bytes)) {
+                    continue;
                 }
+                let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 stat.apply(bytes, subsidiaryBytes);
+                const cache = stat.serialize_cache();
+                cache.cached_dates.push(date);
+                stat.deserialize_cache(cache);
+                await db.put('stats', cache, [season, stat.property.value]);
             }
         } while (stat.on_finish_apply() === 'rerun');
     }
 
     const cache = stat.serialize_cache();
-    cache.cached_dates.push(...newDates);
-    stat.deserialize_cache(cache);
-
     DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionDataWASM(stat, cache);
     console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
-
     await db.put('stats', cache, [season, stat.property.value]);
 
     const end = performance.now();

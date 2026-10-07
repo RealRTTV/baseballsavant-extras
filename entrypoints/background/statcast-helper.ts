@@ -43,7 +43,7 @@ export async function getDayFromURL(date: string): Promise<Uint8Array<ArrayBuffe
     }
 
     const bytes = await result.bytes();
-    if (bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))) {
+    if (isEmptyDay(bytes)) {
         return null;
     }
 
@@ -59,11 +59,15 @@ export async function getDaySubsidiaryFromURL(date: string): Promise<Uint8Array<
     }
 
     const bytes = await result.bytes();
-    if (bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))) {
+    if (isEmptyDay(bytes)) {
         return null;
     }
 
     return bytes;
+}
+
+export function isEmptyDay(bytes: Uint8Array<ArrayBuffer>): boolean {
+    bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))
 }
 
 export async function getDayBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {

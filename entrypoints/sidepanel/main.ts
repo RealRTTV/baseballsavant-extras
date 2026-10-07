@@ -25,19 +25,21 @@ import {sendRequestLoadedCustomStatProperties} from "@/utils/messages/request-lo
 
 export async function onConfigInput(textarea: HTMLTextAreaElement) {
     try {
+        console.log('a');
         const toml = TOML.parse(textarea.value);
+        console.log('b');
         const config = __parseConfig(toml);
+        console.log('c');
         await SAVANT_EXTRAS_CONFIG_STRING.setValue(textarea.value).catch(e => setTextareaConsoleError(e));
+        console.log('d');
         __setCurrentConfig(config);
-        onConfig(config);
+        console.log('e');
+        requestRerunStatcastDataCalculations();
+        console.log('f');
         setTextareaConsoleSuccess();
     } catch (e: any) {
         setTextareaConsoleError(e.message);
     }
-}
-
-function onConfig(_config: ParsedConfig) {
-    requestRerunStatcastDataCalculations();
 }
 
 function initDragAndDrop() {
@@ -64,7 +66,6 @@ function initDragAndDrop() {
         customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
     });
     CUSTOM_STATS_STORAGE.watch(map => {
-        console.log('storage updated');
         customStatsEntries.replaceChildren(...Object.keys(map).map(createCustomStatsEntry));
     });
 }
@@ -143,6 +144,11 @@ async function updateLoadingAnimations(statePromise: Promise<typeof CURRENT_TASK
     browser.runtime.onMessage.addListener(message => {
         if (isUpdateLoadedCustomStatProperties(message)) {
             __setLOADED_CUSTOM_STAT_PROPERTIES(message.props);
+            
+            const textarea: HTMLTextAreaElement | null = document.querySelector('textarea#config-textarea')! as HTMLTextAreaElement;
+            if (textarea !== null) {
+                onConfigInput(textarea);
+            }
         }
     });
     __setLOADED_CUSTOM_STAT_PROPERTIES(await sendRequestLoadedCustomStatProperties());
