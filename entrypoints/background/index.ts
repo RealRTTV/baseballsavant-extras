@@ -23,29 +23,28 @@ import {responseMixinCode} from "@/utils/messages/response-mixin-code.ts";
 export default defineBackground(() => {
     (async () => {
         initMessageHandler();
-        registerOffscreenWorker();
+        await registerOffscreenWorker();
         await refreshCustomStats();
         await initConfig();
         initSidePanel();
         if (import.meta.env.FIREFOX) initBundleMixin();
-        rerunStatcastDataCalculations();
+        await rerunStatcastDataCalculations();
     })()
 });
 
-function registerOffscreenWorker() {
-    browser.runtime.onInstalled.addListener(async () => {
-        await browser.offscreen.createDocument({
-            url: "/offscreen.html",
-            reasons: ["IFRAME_SCRIPTING"],
-            justification: "Needed to run custom stat calculations in-browser."
-        });
-    })
+async function registerOffscreenWorker() {
+    await browser.offscreen.createDocument({
+        url: "/offscreen.html",
+        reasons: ["IFRAME_SCRIPTING"],
+        justification: "Needed to run custom stat calculations in-browser."
+    });
 }
 
 function initMessageHandler() {
     browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (isRerunStatcastDataCalculations(message)) {
-            rerunStatcastDataCalculations();
+            rerunStatcastDataCalculations().then(() => sendResponse());
+            return true;
         } else if (isStatcastCalculationsState(message)) {
             sendResponse(CURRENT_TASK_QUEUE_STATE);
         } else if (isRequestRemoveCustomStatFile(message)) {

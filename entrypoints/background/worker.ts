@@ -1,5 +1,3 @@
-import {createDB} from "@/entrypoints/background/statcast.ts";
-import {getDayBytesFromDB, getDaySubsidiaryBytesFromDB} from "@/entrypoints/background/statcast-helper.ts";
 import {
     B2W_REQUEST_MESSAGE_NAME,
     type B2WRequestMessage, type B2WResponseMessage,
@@ -8,26 +6,19 @@ import {
 } from "@/utils/messages/worker.ts";
 
 export async function sendB2WMessage(payload: B2WRequestMessage["payload"]): Promise<B2WResponseMessage> {
-    return await browser.runtime.sendMessage({
-        payload: payload,
+    const response: B2WResponseMessage = await browser.runtime.sendMessage({
+        payload,
         uuid: crypto.randomUUID(),
         message: B2W_REQUEST_MESSAGE_NAME,
     } satisfies B2WRequestMessage);
+    if ('error' in response.payload) {
+        throw new Error(response.payload.error);
+    } else {
+        return response;
+    }
 }
 
-export async function handleW2BMessage(message: W2BRequestMessage): Promise<W2BResponseMessage["payload"] | undefined> {
-    if ('requestedBytesForDate' in message.payload) {
-        const date = message.payload.requestedBytesForDate;
-        const db = await createDB();
-        return { requestedBytesForDate: await getDayBytesFromDB(date, db) };
-    } else if ('requestedSubsidiaryBytesForDate' in message.payload) {
-        const date = message.payload.requestedSubsidiaryBytesForDate;
-        const db = await createDB();
-        return { requestedSubsidiaryBytesForDate: await getDaySubsidiaryBytesFromDB(date, db) };
-    } else if ('test2' in message.payload) {
-        console.log('got msg from worker:', message.payload.test2);
-        return { test2: 'hi from the background w2b' };
-    } else {
-        console.error(`Unknown W2B request: ${message}`);
-    }
+export async function handleW2BMessage(_message: W2BRequestMessage): Promise<W2BResponseMessage["payload"] | undefined> {
+    // nothing yet
+    return undefined;
 }

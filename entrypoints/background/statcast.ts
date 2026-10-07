@@ -50,10 +50,10 @@ export let CURRENT_TASK_QUEUE_STATE: 'idle' | { downloadingSeason: number } | { 
  * Note: We should not not-add a `TASK_QUEUE_QUEUE` task if there is currently one executing because it could be midway through an `await getAllTasks()` call that is outdated due to outdated config values.
  * Leading to a different result from the newer `rerunStatcastDataCalculations` run.
  */
-export function rerunStatcastDataCalculations() {
+export async function rerunStatcastDataCalculations() {
     TASK_QUEUE.pause();
     TASK_QUEUE_QUEUE.clear();
-    TASK_QUEUE_QUEUE.add(async () => {
+    await TASK_QUEUE_QUEUE.add(async () => {
         TASK_QUEUE.clear();
         await TASK_QUEUE.onIdle();
         CURRENT_TASK_QUEUE_STATE = 'idle';
@@ -67,7 +67,7 @@ export function rerunStatcastDataCalculations() {
         if (TASK_QUEUE_QUEUE.size === 0) {
             TASK_QUEUE.start();
         }
-    }).then(_ => {});
+    });
 }
 
 async function getAllTasks(): Promise<(() => Promise<void>)[]> {
@@ -188,15 +188,16 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
                 const csv = await getDayBytesFromDB(date, db);
                 let subsidiaryCsv = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 await stat.apply(cache, csv, subsidiaryCsv);
+                cache.cached_dates.push(date);
+                console.log(JSON.stringify(cache));
+                await db.put('stats', cache, [season, stat.property.value]);
             }
         } while (await stat.on_finish_apply(cache) === 'rerun');
     }
 
-    cache.cached_dates.push(...newDates);
-
     DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache);
+    console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
-    await db.put('stats', cache, [season, stat.property.value]);
     console.log(`[JS] Calculated ${stat.property.value} for ${season}`);
 }
 
@@ -231,7 +232,7 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
     stat.deserialize_cache(cache);
 
     DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionData(stat, cache);
-    console.log(DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
+    console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
 
     await db.put('stats', cache, [season, stat.property.value]);
 

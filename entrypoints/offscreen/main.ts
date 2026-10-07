@@ -11,7 +11,6 @@ const sandbox = document.querySelector('iframe')?.contentWindow!;
 browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (isB2WRequestMessage(msg)) {
         const uuid: string = msg.uuid!;
-
         function handleMessage(event: MessageEvent<any>) {
             if (event.data.uuid === uuid) {
                 window.removeEventListener('message', handleMessage);

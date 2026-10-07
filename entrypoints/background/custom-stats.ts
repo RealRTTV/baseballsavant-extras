@@ -41,15 +41,29 @@ async function parseJSStat(src: string, filename: string): Promise<JSCustomStat<
             throw new Error("Incorrect payload.");
         },
         on_incremental: async (cache) => {
-            await sendB2WMessage({ onIncremental: property.value, cache });
+            const response = await sendB2WMessage({ onIncremental: property.value, cache });
+            if (!('cacheUpdate' in response.payload)) {
+                throw new Error("Incorrect payload.");
+            }
+
+            Object.assign(cache, response.payload.cacheUpdate);
         },
         apply: async (cache, rows, subsidiaryRows) => {
-            await sendB2WMessage({ apply: property.value, cache, rows, subsidiaryRows });
+            const response = await sendB2WMessage({ apply: property.value, cache, rows: new TextDecoder().decode(rows), subsidiaryRows: subsidiaryRows == null ? null : new TextDecoder().decode(subsidiaryRows) });
+            if (!('cacheUpdate' in response.payload)) {
+                throw new Error("Incorrect payload.");
+            }
+
+            Object.assign(cache, response.payload.cacheUpdate);
         },
         on_finish_apply: async (cache): Promise<"rerun" | false> => {
             const response = (await sendB2WMessage({ onFinishApply: property.value, cache }));
-            if ('onFinishApply' in response.payload) return response.payload.onFinishApply;
-            throw new Error("Incorrect payload.");
+            if (!('onFinishApply' in response.payload)) {
+                throw new Error("Incorrect payload.");
+            }
+
+            Object.assign(cache, response.payload.cacheUpdate);
+            return response.payload.onFinishApply;
         },
         value: async (value) => {
             const response = (await sendB2WMessage({ valueFor: property.value, value }));
