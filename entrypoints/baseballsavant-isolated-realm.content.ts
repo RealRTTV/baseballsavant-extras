@@ -5,6 +5,10 @@ export default defineContentScript({
     world: 'ISOLATED',
     runAt: 'document_end',
     main(ctx) {
+        if (import.meta.env.FIREFOX) {
+            return;
+        }
+        
         const allScripts = Array.from(document.body.querySelectorAll('script')).map(script => script.src);
         const bundleUrl = allScripts.find(href => href.startsWith('https://builds.mlbstatic.com/baseballsavant.mlb.com/v1/sections/player-update/builds/') && href.endsWith("/scripts/build/index.js"))!;
 

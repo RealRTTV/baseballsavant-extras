@@ -2,7 +2,6 @@ import {
     __parseConfig,
     __setCurrentConfig,
     initConfig,
-    type ParsedConfig,
     SAVANT_EXTRAS_CONFIG_STRING
 } from "@/utils/config.ts";
 import {DEFAULT_CONFIG} from "@/utils/config-consts.ts";

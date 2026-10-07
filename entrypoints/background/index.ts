@@ -23,7 +23,7 @@ import {responseMixinCode} from "@/utils/messages/response-mixin-code.ts";
 export default defineBackground(() => {
     (async () => {
         initMessageHandler();
-        await registerOffscreenWorker();
+        if (!import.meta.env.FIREFOX) await registerOffscreenWorker();
         await refreshCustomStats();
         await initConfig();
         initSidePanel();
@@ -78,7 +78,7 @@ function initMessageHandler() {
 
 function initSidePanel() {
     if (import.meta.env.FIREFOX) {
-        (browser.browserAction ?? browser.action).onClicked.addListener(() => {
+        browser.browserAction.onClicked.addListener(() => {
             (browser as any).sidebarAction.toggle();
         })
     } else {

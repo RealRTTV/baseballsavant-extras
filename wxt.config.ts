@@ -18,32 +18,36 @@ export default defineConfig({
     manifest: ({ manifestVersion }) => ({
         content_security_policy: {
             extension_pages: manifestVersion == 2 ? FIREFOX_CSP : CHROME_CSP,
-            sandbox: "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; child-src 'self' blob:;"
+            sandbox: manifestVersion == 2 ? undefined : "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; child-src 'self' blob:;"
         },
         browser_specific_settings: {
             gecko: {
                 id: "baseballsavant-extras@rttv.ca"
             }
         },
-        action: {},
-        declarative_net_request: {
+        declarative_net_request: manifestVersion == 2 ? undefined : {
             rule_resources: [{
                 enabled: true,
                 id: "baseballsavant-mixin-block",
                 path: "baseballsavant-mixin-block.json"
             }]
         },
+        browser_action: {},
         permissions: [
             'storage',
             'unlimitedStorage',
 
-            // 'webRequest',
-            // 'webRequestBlocking',
-            // "webRequestFilterResponse",
+            ...[
+                'offscreen',
+                'declarativeNetRequest',
+                'declarativeNetRequestFeedback',
+            ].filter(_ => manifestVersion == 3),
 
-            "offscreen",
-            "declarativeNetRequest",
-            "declarativeNetRequestFeedback"
+            ...[
+                'webRequest',
+                'webRequestBlocking',
+                'webRequestFilterResponse',
+            ].filter(_ => manifestVersion == 2),
         ],
         host_permissions: [
             '*://baseballsavant.mlb.com/*',

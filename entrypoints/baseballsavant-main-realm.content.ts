@@ -5,6 +5,10 @@ export default defineContentScript({
     world: 'MAIN',
     runAt: 'document_idle',
     async main() {
+        if (import.meta.env.FIREFOX) {
+            return;
+        }
+        
         const response: Promise<string> = new Promise((resolve, reject) => {
             window.postMessage("baseballsavant-extras:request-src", "*");
 
