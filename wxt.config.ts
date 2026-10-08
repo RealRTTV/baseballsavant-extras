@@ -20,9 +20,10 @@ export default defineConfig({
             extension_pages: manifestVersion == 2 ? FIREFOX_CSP : CHROME_CSP,
             sandbox: manifestVersion == 2 ? undefined : "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; child-src 'self' blob:;"
         },
-        browser_specific_settings: {
+        browser_specific_settings: manifestVersion == 3 ? undefined : {
             gecko: {
-                id: "baseballsavant-extras@rttv.ca"
+                id: "baseballsavant-extras@rttv.ca",
+                update_url: "https://rttv.ca/baseballsavant-extras/firefox-updates.json",
             }
         },
         declarative_net_request: manifestVersion == 2 ? undefined : {
@@ -52,7 +53,6 @@ export default defineConfig({
         host_permissions: [
             '*://baseballsavant.mlb.com/*',
             '*://rttv.ca/statcast-subsidiary-csv/*',
-            '*://rttv.ca/statcast-subsidiary-version',
             '*://builds.mlbstatic.com/*'
         ]
     })

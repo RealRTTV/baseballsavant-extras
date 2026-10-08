@@ -24,12 +24,12 @@ let LOADED_CUSTOM_STATS: CustomStat<any, any>[] = [];
 
 export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
 
-async function parseJSStatMV2(src: string, filename: string): Promsie<JSCustomStat<any, any>[]> {
+async function parseJSStatMV2(src: string, filename: string): Promise<JSCustomStat<any, any>[]> {
     const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
     const moduleNamespace = await import(/* @vite-ignore */ objectURL);
     const stats = Object.values(moduleNamespace).filter(isJSCustomStatInternal);
     URL.revokeObjectURL(objectURL);
-    
+
     return stats.map(stat => ({
         property: stat.property,
         create_cache: async () => Promise.resolve(stat.create_cache()),

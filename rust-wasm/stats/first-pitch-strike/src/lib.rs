@@ -1,9 +1,9 @@
 #![allow(static_mut_refs)]
 
-use std::io::Cursor;
 use fxhash::{FxBuildHasher, FxHashMap};
 use serde::{Deserialize, Serialize};
-use shared::{export_percentile_property_file, export_ffi};
+use shared::{export_ffi, export_percentile_property_file};
+use std::io::Cursor;
 
 export_percentile_property_file!("percentile_property.json");
 
