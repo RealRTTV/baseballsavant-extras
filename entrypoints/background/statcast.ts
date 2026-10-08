@@ -195,15 +195,20 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
 
         do {
             for (const date of newDates) {
-                const csv = await getDayBytesFromDB(date, db);
-                if (isEmptyDay(csv)) {
+                const bytes = await getDayBytesFromDB(date, db);
+                if (isEmptyDay(bytes)) {
                     numComplete += 1;
                     setState();
                     continue
                 }
 
-                let subsidiaryCsv = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
-                await stat.apply(cache, csv, subsidiaryCsv);
+                let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
+                if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
+                    numComplete += 1;
+                    setState();
+                    continue;
+                }
+                await stat.apply(cache, bytes, subsidiaryBytes);
                 cache.cached_dates.push(date);
                 await db.put('stats', cache, [season, stat.property.value]);
                 numComplete += 1;
@@ -252,6 +257,11 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
                     continue;
                 }
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
+                if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
+                    numComplete += 1;
+                    setState();
+                    continue;
+                }
                 stat.apply(bytes, subsidiaryBytes);
                 const cache = stat.serialize_cache();
                 cache.cached_dates.push(date);
