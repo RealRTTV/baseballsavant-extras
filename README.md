@@ -3,11 +3,12 @@ An extension for Baseball Savant to add custom stats.
 
 # Installation
 
-Releases are on the **Releases** tab on the right hand side of the GitHub page.
+*Releases are on the **Releases** tab on the right hand side of the GitHub page.*
 
-Firefox: Download the `xpi` file in Firefox and it should give a pop-up asking to install.
+### Firefox
+Download the `xpi` file in Firefox and it should give a pop-up asking to install.
 
-Chrome:
+### Chrome
 1. Go to [`chrome://extensions`](chrome://extensions)
 2. Enable the developer mode toggle in the top right.
 3. Drag and drop the `zip` file. (Web Store coming soon™)
@@ -15,7 +16,7 @@ Chrome:
 Note: Firefox currently supports automatic updates, while Chrome currently does not. If you have any issues, make sure you're on the latest version before opening a bug report.
 
 # Usage
-Baseball Savant Extras is operated entirely by its [sidebar](https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Page_structures/Sidebars) by clicking the extension's icon on the toolbar.
+Baseball Savant Extras is operated entirely by its sidebar; accessed by clicking the extension's icon on the toolbar.
 
 <img src="markdown/sidebar.webp" width=400>
 
@@ -28,7 +29,7 @@ MLB actually provides more stats than what is typically shown (such as EV50), th
 
 Custom stats are registered here with their internal name (ex: `miss_distance` or `first_pitch_strike`)
 
-Note: As of right now, if MLB comes out with new stats for their webpage, this list will not automatically add it, you'll need to be aware what the new stat's internal name is (likely by checking [BUILTIN_MLB_STATS.md](markdown/BUILTIN_MLB_STATS.md)) and add it yourself.
+Note: As of right now, if MLB comes out with new stats for their webpage, this list will **not** automatically add it, you'll need to be aware what the new stat's internal name is (likely by checking [BUILTIN_MLB_STATS.md](markdown/BUILTIN_MLB_STATS.md)) and add it yourself.
 
 ## `[active-seasons]`
 `[active-seasons]` stores the settings for which seasons to download locally for custom stat calculcations (see [Custom Stats](#custom-stats) for more details).
