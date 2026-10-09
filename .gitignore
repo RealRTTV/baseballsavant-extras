@@ -16,8 +16,8 @@ web-ext.config.ts
 web-ext-artifacts
 
 # Rust
-rust-wasm/target
-rust-wasm/pkg
+src/rust-wasm/target
+src/rust-wasm/pkg
 
 # Editor directories and files
 .vscode/*
@@ -29,5 +29,3 @@ rust-wasm/pkg
 *.njsproj
 *.sln
 *.sw?
-
-rust-wasm/target

@@ -1,9 +1,9 @@
 //@ts-ignore
-import firstPitchStrikeJSFileContents from '@/.output/custom_stats/first-pitch-strike.js?uint8array';
+import firstPitchStrikeJSFileContents from '@/../.output/custom_stats/first-pitch-strike.js?uint8array';
 //@ts-ignore
-import firstPitchStrikeWASMFileContents from '@/.output/custom_stats/first_pitch_strike.wasm?uint8array';
+import firstPitchStrikeWASMFileContents from '@/../.output/custom_stats/first_pitch_strike.wasm?uint8array';
 //@ts-ignore
-import missDistanceWASMFileContents from '@/.output/custom_stats/miss_distance.wasm?uint8array';
+import missDistanceWASMFileContents from '@/../.output/custom_stats/miss_distance.wasm?uint8array';
 
 import type {ExtendedPercentileProperty} from "@/utils/stats";
 

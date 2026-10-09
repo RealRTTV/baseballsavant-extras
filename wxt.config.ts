@@ -1,5 +1,5 @@
 import {defineConfig} from 'wxt';
-import {bundleCustomStatsPlugin} from './build-scripts/bundle-custom-stats.ts';
+import {bundleCustomStatsPlugin} from './src/build-scripts/bundle-custom-stats.ts';
 import arraybuffer from 'vite-plugin-arraybuffer';
 
 const CHROME_CSP: string = "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
@@ -10,6 +10,7 @@ export default defineConfig({
         plugins: [bundleCustomStatsPlugin(), arraybuffer()],
         server: { cors: { origin: [/^chrome-extension:\/\//, "null"] } },
     }),
+    srcDir: "src",
     modules: ['@wxt-dev/auto-icons'],
     autoIcons: {
         baseIconPath: 'assets/icon.svg',
