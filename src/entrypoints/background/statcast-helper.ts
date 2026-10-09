@@ -1,7 +1,8 @@
-import type { IDBPDatabase } from "idb";
-import {DISTRIBUTION_METRICS, type StatcastDB} from "./statcast";
-import type {ExtendedPercentileProperty, PercentileProperty} from "@/utils/stats";
-import type {BaseCache} from "@/utils/stats/custom_stats";
+import type {IDBPDatabase} from "idb";
+import type {AdditionalStatData, StatcastDB} from "./statcast";
+import type {ExtendedPercentileProperty} from "@/utils/stats";
+import {isWASMCustomStat, type BaseCache, type CustomStat} from "@/utils/stats/custom_stats";
+import { distributionDataJS, distributionDataWASM } from "./custom-stats";
 
 export function* seasonDates(season: number): Generator<string> {
     if (season < 2008) {
@@ -20,8 +21,27 @@ export function* seasonDates(season: number): Generator<string> {
     }
 }
 
-export function getDistributionData(stat: PercentileProperty, season: number): { mean: number, stdev: number, qual: number } {
-    return DISTRIBUTION_METRICS[`${season}:${stat.value}`] ?? { mean: 0, stdev: 1, qual: 0 };
+export async function modifyAdditionalStatData(stat: ExtendedPercentileProperty, season: number, db: IDBPDatabase<StatcastDB>, modify: (data: AdditionalStatData) => Promise<AdditionalStatData | void>): Promise<AdditionalStatData> {
+    const data: AdditionalStatData = (await db.get('additionalStatData', [season, stat.value])) ?? {};
+    const result = await modify(data);
+    const newData = result == undefined ? data : result;
+    await db.put('additionalStatData', newData, [season, stat.value]);
+    return newData;
+}
+
+export async function getDistributionData(stat: CustomStat<any>, season: number, db: IDBPDatabase<StatcastDB>): Promise<{ mean: number, stdev: number, qual: number }> {
+    const data = await modifyAdditionalStatData(stat.property, season, db, async (data) => {        
+        if (data.distributionData == undefined) {
+            const cache = await db.get('stats', [season, stat.property.value]);
+            if (cache != undefined) {
+                data.distributionData = isWASMCustomStat(stat) ? distributionDataWASM(stat, cache) : await distributionDataJS(stat, cache);
+            }
+        }
+        
+        return data;
+    });
+    
+    return data.distributionData!;
 }
 
 export async function getStatFromDB(stat: ExtendedPercentileProperty, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<object | undefined> {

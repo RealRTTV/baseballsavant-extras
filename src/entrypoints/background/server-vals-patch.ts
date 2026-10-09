@@ -23,10 +23,10 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
         for (const season of getConfig().activeSeasons) {
             const statValue: object | undefined = await getStatFromDB(stat, season, playerId, db);
 
-            const { mean, stdev, qual } = getDistributionData(stat, season)!;
-            const value: number | null = statValue === undefined ? null : await statInstance.value(statValue);
-            const zScore: number | null = value == null ? null : stat.invert === true ? (mean - value) / stdev : (value - mean) / stdev;
-            const percentile: number | null = zScore === null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
+            const dist = (await getDistributionData(statInstance, season, db))!;
+            const value: number | null = statValue == null ? null : await statInstance.value(statValue);
+            const zScore: number | null = value == null ? null : stat.invert === true ? (dist.mean - value) / dist.stdev : (value - dist.mean) / dist.stdev;
+            const percentile: number | null = zScore == null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
 
             patches.patches.push({
                 key: stat.value,
@@ -34,15 +34,15 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
                 percentile,
                 season,
                 value
-            })
+            });
 
             patches.summaryPatches.push({
                 metric: stat.value,
-                avg_metric: mean,
-                stddev_metric: stdev,
-                qualification_threshold: qual,
+                avg_metric: dist.mean,
+                stddev_metric: dist.stdev,
+                qualification_threshold: dist.qual,
                 season,
-            })
+            });
         }
 
         patches.forceDisplayPatches.push({

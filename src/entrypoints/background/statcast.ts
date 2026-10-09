@@ -6,6 +6,7 @@ import {
     getDayFromURL, getDaySubsidiaryBytesFromDB,
     getDaySubsidiaryFromURL,
     isEmptyDay,
+    modifyAdditionalStatData,
     seasonDates
 } from "@/entrypoints/background/statcast-helper.ts";
 import {distributionDataJS, distributionDataWASM, getCustomStatForName, STAT_TO_FILENAME_MAP} from "@/entrypoints/background/custom-stats.ts";
@@ -99,6 +100,10 @@ export interface StatcastDB extends DBSchema {
         key: [number, string];
         value: BaseCache<any>;
     };
+    additionalStatData: {
+        key: [number, string];
+        value: AdditionalStatData;
+    };
 }
 
 type SeasonCache = {
@@ -108,15 +113,18 @@ type SeasonCache = {
     cachedSubsidiaryVersion: number | undefined,
 };
 
-export const DISTRIBUTION_METRICS: Record<string, { mean: number, stdev: number, qual: number }> = {};
+export type AdditionalStatData = {
+    distributionData?: { mean: number, stdev: number, qual: number };
+};
 
 export async function createDB(): Promise<IDBPDatabase<StatcastDB>> {
-    return openDB<StatcastDB>('statcast-data', 1, {
+    return openDB<StatcastDB>('statcast-data', 2, {
         upgrade(db) {
-            db.createObjectStore('date');
-            db.createObjectStore('dateSubsidiary');
-            db.createObjectStore('season');
-            db.createObjectStore('stats');
+            if (!db.objectStoreNames.contains('date')) db.createObjectStore('date');
+            if (!db.objectStoreNames.contains('dateSubsidiary')) db.createObjectStore('dateSubsidiary');
+            if (!db.objectStoreNames.contains('season')) db.createObjectStore('season');
+            if (!db.objectStoreNames.contains('stats')) db.createObjectStore('stats');
+            if (!db.objectStoreNames.contains('additionalStatData')) db.createObjectStore('additionalStatData');
         }
     });
 }
@@ -217,8 +225,9 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
         } while (await stat.on_finish_apply(cache) === 'rerun');
     }
 
-    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = await distributionDataJS(stat, cache);
-    console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
+    const distData = await distributionDataJS(stat, cache);
+    await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
+    console.log(stat.property.value, distData);
 
     console.log(`[JS] Calculated ${stat.property.value} for ${season}`);
 }
@@ -274,13 +283,13 @@ async function calculateWASMCustomStat<T extends object, Cache extends BaseCache
     }
 
     const cache = stat.serialize_cache();
-    DISTRIBUTION_METRICS[`${season}:${stat.property.value}`] = distributionDataWASM(stat, cache);
-    console.log(stat.property.value, DISTRIBUTION_METRICS[`${season}:${stat.property.value}`]);
+    const distData = distributionDataWASM(stat, cache);
+    await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
+    console.log(stat.property.value, distData);
     await db.put('stats', cache, [season, stat.property.value]);
 
     const end = performance.now();
     console.log(`[WASM] Calculated ${stat.property.value} for ${season} in ${end - start}ms`);
-
 }
 
 function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise<void>)[] {
