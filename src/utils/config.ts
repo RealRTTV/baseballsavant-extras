@@ -71,10 +71,11 @@ function parseConfig(toml: TomlTable): ParsedConfig {
         const entry = toml['active-seasons'] as Record<string, any>;
         const includeCurrent = entry['include-current'] === true;
         const currentSeason = new Date().getFullYear();
-        const seasons = (entry['seasons'] ?? []) as number[];
+        let seasons = (entry['seasons'] ?? []) as number[];
         if (includeCurrent && !seasons.includes(currentSeason)) {
             seasons.push(currentSeason);
         }
+        seasons = seasons.filter(szn => szn >= 1970 && szn <= 2100);
         seasons.sort((a, b) => b - a); // descending
         return seasons;
     })();
