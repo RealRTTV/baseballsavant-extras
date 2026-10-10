@@ -1,7 +1,6 @@
 import {
     isJSCustomStatInternal,
-    type BaseCache,
-    type CustomStat,
+    type StatCache,
     type JSCustomStat,
     type WASMCustomStat
 } from "@/utils/stats/custom_stats";
@@ -21,11 +20,11 @@ import Papa from "papaparse";
 import type { SubsidiaryRow } from "@/utils/data_types/subsidiary-row";
 import { createDB } from "./statcast";
 
-let LOADED_CUSTOM_STATS: CustomStat<any, any>[] = [];
+let LOADED_CUSTOM_STATS: (JSCustomStat<any> | WASMCustomStat<any>)[] = [];
 
 export let STAT_TO_FILENAME_MAP: Record<string, string> = {};
 
-async function parseJSStatMV2(src: string, filename: string): Promise<JSCustomStat<any, any>[]> {
+async function parseJSStatMV2(src: string, filename: string): Promise<JSCustomStat<any>[]> {
     const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
     const moduleNamespace = await import(/* @vite-ignore */ objectURL);
     const stats = Object.values(moduleNamespace).filter(isJSCustomStatInternal);
@@ -45,10 +44,10 @@ async function parseJSStatMV2(src: string, filename: string): Promise<JSCustomSt
         on_finish_apply: async (cache): Promise<"rerun" | false> => Promise.resolve(stat.on_finish_apply(cache)),
         value: async (value) => Promise.resolve(stat.value(value)),
         samples: async (value) => Promise.resolve(stat.samples(value)),
-    } satisfies JSCustomStat<any, any>));
+    } satisfies JSCustomStat<any>));
 }
 
-async function parseJSStatMV3(src: string, filename: string): Promise<JSCustomStat<any, any>[]> {
+async function parseJSStatMV3(src: string, filename: string): Promise<JSCustomStat<any>[]> {
     const response = await sendB2WMessage({ registerCustomStatFromSrc: src, filename });
     if ('error' in response.payload) {
         throw new Error(response.payload.error);
@@ -102,7 +101,7 @@ async function parseJSStatMV3(src: string, filename: string): Promise<JSCustomSt
             if ('samplesFor' in response.payload) return response.payload.samplesFor;
             throw new Error("Incorrect payload.");
         }
-    } satisfies JSCustomStat<any, any>));
+    } satisfies JSCustomStat<any>));
 }
 
 const parseJSStat = import.meta.env.FIREFOX ? parseJSStatMV2 : parseJSStatMV3;
@@ -159,20 +158,20 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
 
     return [{
         property: percentileProperty,
-        deserialize_cache: function (cache: BaseCache<any> | undefined): boolean {
+        deserialize_cache: function (cache: StatCache<any> | undefined): boolean {
             const json = cache ? JSON.stringify(cache) : '';
             const { ptr, len } = copyString(json);
             const result = deserialize_cache(ptr, len);
             free(ptr, len, 1);
             return !!result;
         },
-        serialize_cache: function (): BaseCache<any> {
+        serialize_cache: function (): StatCache<any> {
             const ptrlen = BigInt(serialize_cache());
             const len = Number(ptrlen >> 32n);
             const ptr = Number(ptrlen & 0xFFFFFFFFn);
             const str = stringFromAddr(ptr, len, memory);
             free(ptr, len, 1);
-            const cache: BaseCache<any> = JSON.parse(str);
+            const cache: StatCache<any> = JSON.parse(str);
             cache.uses_subsidiary_csv = percentileProperty.wants_subsidiary_csv;
             return cache;
         },
@@ -203,11 +202,11 @@ async function parseWASMStat(src: Uint8Array<ArrayBuffer>): Promise<WASMCustomSt
 }
 
 async function parseStorage(record: Record<string, CustomStatFile>) {
-    const customStats: CustomStat<any>[] = [];
+    const customStats = [];
     const statToFilenameMap: Record<string, string> = {};
     for (const [filename, { srcBase64 }] of Object.entries(record)) {
         const src = Uint8Array.fromBase64(srcBase64);
-        let values: CustomStat<any, any>[] = [];
+        let values = [];
         try {
             if (filename.endsWith('.js')) {
                 values.push(...await parseJSStat(new TextDecoder().decode(src), filename));
@@ -243,7 +242,7 @@ export async function refreshCustomStats() {
     CUSTOM_STATS_STORAGE.watch(parseStorage);
 }
 
-export function getCustomStatForName(name: string): CustomStat<any, any> | undefined {
+export function getCustomStatForName(name: string): JSCustomStat<any> | WASMCustomStat<any> | undefined {
     return LOADED_CUSTOM_STATS.find(stat => stat.property.value === name);
 }
 
@@ -280,11 +279,11 @@ export async function addCustomStat(name: string, contents: Uint8Array<ArrayBuff
     CUSTOM_STATS_STORAGE.setValue(customStats);
 }
 
-export function qualificationThresholdWASM<T extends object | string, Cache extends BaseCache<T>>(stat: WASMCustomStat<T, Cache>, cache: Cache): number {
+export function qualificationThresholdWASM<T extends object | string>(stat: WASMCustomStat<T>, cache: StatCache<T>): number {
     return Math.floor(0.25 * Math.max(...Object.values(cache.by_player).map(instance => stat.samples(instance))));
 }
 
-export function distributionDataWASM<T extends object | string, Cache extends BaseCache<T>>(stat: WASMCustomStat<T, Cache>, cache: Cache): { mean: number, stdev: number, qual: number } {
+export function distributionDataWASM<T extends object | string>(stat: WASMCustomStat<T>, cache: StatCache<T>): { mean: number, stdev: number, qual: number } {
     const threshold: number = (cache.qualification_threshold ??= qualificationThresholdWASM(stat, cache));
     stat.deserialize_cache(cache);
     const values: number[] = Object.values(cache.by_player).filter(instance => stat.samples(instance) >= threshold).map(stat.value);
@@ -295,11 +294,11 @@ export function distributionDataWASM<T extends object | string, Cache extends Ba
     return { mean, stdev: Math.sqrt(variance), qual: threshold };
 }
 
-export async function qualificationThresholdJS<T extends object | string, Cache extends BaseCache<T>>(stat: JSCustomStat<T, Cache>, cache: Cache): Promise<number> {
+export async function qualificationThresholdJS<T extends object | string>(stat: JSCustomStat<T>, cache: StatCache<T>): Promise<number> {
     return Math.floor(0.25 * Math.max(...await Promise.all(Object.values(cache.by_player).map(instance => stat.samples(instance)))));
 }
 
-export async function distributionDataJS<T extends object | string, Cache extends BaseCache<T>>(stat: JSCustomStat<T, Cache>, cache: Cache): Promise<{ mean: number, stdev: number, qual: number }> {
+export async function distributionDataJS<T extends object | string>(stat: JSCustomStat<T>, cache: StatCache<T>): Promise<{ mean: number, stdev: number, qual: number }> {
     const threshold: number = (cache.qualification_threshold ??= await qualificationThresholdJS(stat, cache));
     const samples: number[] = await Promise.all(Object.values(cache.by_player).map(instance => stat.samples(instance)));
     const values: number[] = await Promise.all(Object.values(cache.by_player).filter((instance, idx) => samples[idx] ?? Number.NEGATIVE_INFINITY >= threshold).map(stat.value));

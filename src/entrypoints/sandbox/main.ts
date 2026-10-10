@@ -43,8 +43,8 @@ function respondToB2WMessage(payload: B2WResponseMessage["payload"], event: Mess
     } satisfies B2WResponseMessage, { targetOrigin: event.origin })
 }
 
-let REGISTERED_CUSTOM_STATS_BY_NAME: Map<string, JSCustomStatInternal<any, any>> = new Map();
-let REGISTERED_CUSTOM_STATS_BY_FILENAME: Map<string, JSCustomStatInternal<any, any>[]> = new Map();
+let REGISTERED_CUSTOM_STATS_BY_NAME: Map<string, JSCustomStatInternal<any>> = new Map();
+let REGISTERED_CUSTOM_STATS_BY_FILENAME: Map<string, JSCustomStatInternal<any>[]> = new Map();
 
 async function registerCustomStatFromSrc(src: string, filename: string, event: MessageEvent<any>) {
     const objectURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));

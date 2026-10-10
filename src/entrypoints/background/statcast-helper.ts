@@ -1,7 +1,7 @@
 import type {IDBPDatabase} from "idb";
 import type {AdditionalStatData, StatcastDB} from "./statcast";
 import type {ExtendedPercentileProperty} from "@/utils/stats";
-import {isWASMCustomStat, type BaseCache, type CustomStat} from "@/utils/stats/custom_stats";
+import {isWASMCustomStat, type JSCustomStat, type StatCache, type WASMCustomStat} from "@/utils/stats/custom_stats";
 import { distributionDataJS, distributionDataWASM } from "./custom-stats";
 
 export function* seasonDates(season: number): Generator<string> {
@@ -29,7 +29,7 @@ export async function modifyAdditionalStatData(stat: ExtendedPercentileProperty,
     return newData;
 }
 
-export async function getDistributionData(stat: CustomStat<any>, season: number, db: IDBPDatabase<StatcastDB>): Promise<{ mean: number, stdev: number, qual: number }> {
+export async function getDistributionData(stat: JSCustomStat<any> | WASMCustomStat<any>, season: number, db: IDBPDatabase<StatcastDB>): Promise<{ mean: number, stdev: number, qual: number }> {
     const data = await modifyAdditionalStatData(stat.property, season, db, async (data) => {        
         if (data.distributionData == undefined) {
             const cache = await db.get('stats', [season, stat.property.value]);
@@ -45,7 +45,7 @@ export async function getDistributionData(stat: CustomStat<any>, season: number,
 }
 
 export async function getStatFromDB(stat: ExtendedPercentileProperty, season: number, player: number, db: IDBPDatabase<StatcastDB>): Promise<object | undefined> {
-    const cache: BaseCache<object> | undefined = await db.get('stats', [season, stat.value]);
+    const cache: StatCache<object> | undefined = await db.get('stats', [season, stat.value]);
 
     if (cache === undefined) {
         return undefined;

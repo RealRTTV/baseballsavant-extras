@@ -11,7 +11,7 @@ import {
 } from "@/entrypoints/background/statcast-helper.ts";
 import {distributionDataJS, distributionDataWASM, getCustomStatForName, STAT_TO_FILENAME_MAP} from "@/entrypoints/background/custom-stats.ts";
 import {
-    type BaseCache,
+    type StatCache,
     isJSCustomStat,
     isWASMCustomStat,
     type JSCustomStat,
@@ -98,7 +98,7 @@ export interface StatcastDB extends DBSchema {
     };
     stats: {
         key: [number, string];
-        value: BaseCache<any>;
+        value: StatCache<any>;
     };
     additionalStatData: {
         key: [number, string];
@@ -181,10 +181,10 @@ async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promi
     return tasks;
 }
 
-async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T> = BaseCache<T>>(stat: JSCustomStat<T, Cache>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
+async function calculateJSCustomStat<T extends object>(stat: JSCustomStat<T>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
     console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
-    const cache: Cache = (await db.get('stats', [season, stat.property.value])) as Cache ?? await stat.create_cache();
+    const cache = (await db.get('stats', [season, stat.property.value])) ?? await stat.create_cache();
     const newDates = seasonDates(season).filter(date => !cache.cached_dates.includes(date)).toArray();
     let numComplete = 0;
     const setState = () => {
@@ -232,11 +232,11 @@ async function calculateJSCustomStat<T extends object, Cache extends BaseCache<T
     console.log(`[JS] Calculated ${stat.property.value} for ${season}`);
 }
 
-async function calculateWASMCustomStat<T extends object, Cache extends BaseCache<T> = BaseCache<T>>(stat: WASMCustomStat<T, Cache>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
+async function calculateWASMCustomStat<T extends object>(stat: WASMCustomStat<T>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
     const start = performance.now();
     console.log(`[WASM] Calculating ${stat.property.value} for ${season}...`);
 
-    const cacheInDB: Cache | undefined = await db.get('stats', [season, stat.property.value]) as Cache | undefined;
+    const cacheInDB: StatCache<T> | undefined = await db.get('stats', [season, stat.property.value]) as StatCache<T> | undefined;
     const cachedDates = cacheInDB?.cached_dates ?? [];
 
     const newDates = seasonDates(season).filter(date => !cachedDates.includes(date)).toArray();

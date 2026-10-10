@@ -1,6 +1,6 @@
 /// Worker to Background Request Message
 import type {ExtendedPercentileProperty} from "@/utils/stats";
-import type {BaseCache} from "@/utils/stats/custom_stats";
+import type {StatCache} from "@/utils/stats/custom_stats";
 
 export type W2BRequestMessage = {
     payload: {},
@@ -33,9 +33,9 @@ export type B2WRequestMessage = {
         { registerCustomStatFromSrc: string, filename: string }
       | { removeCustomStatByFilename: string }
       | { createCacheFor: string }
-      | { onIncremental: string, cache: object & BaseCache<any> }
-      | { apply: string, cache: object & BaseCache<any>, rows: string, subsidiaryRows: string | undefined | null }
-      | { onFinishApply: string, cache: object & BaseCache<any> }
+      | { onIncremental: string, cache: StatCache<any> }
+      | { apply: string, cache: StatCache<any>, rows: string, subsidiaryRows: string | undefined | null }
+      | { onFinishApply: string, cache: StatCache<any> }
       | { valueFor: string, value: object | string }
       | { samplesFor: string, value: object | string };
     message: string;
@@ -52,11 +52,11 @@ export function isB2WRequestMessage(type: any): type is B2WRequestMessage {
 export type B2WResponseMessage = {
     payload: { error: string }
         | { registerCustomStatFromSrcPercentileProperties: ExtendedPercentileProperty[] }
-        | { createCacheFor: object & BaseCache<any> }
-        | { onFinishApply: false | 'rerun', cacheUpdate: object & BaseCache<any> }
+        | { createCacheFor: StatCache<any> }
+        | { onFinishApply: false | 'rerun', cacheUpdate: StatCache<any> }
         | { valueFor: number }
         | { samplesFor: number }
-        | { cacheUpdate: object & BaseCache<any> }
+        | { cacheUpdate: StatCache<any> }
         | { };
     message: string;
     uuid: string;
