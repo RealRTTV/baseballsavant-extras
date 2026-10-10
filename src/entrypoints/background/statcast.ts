@@ -185,42 +185,44 @@ async function calculateJSCustomStat<T extends object>(stat: JSCustomStat<T>, se
     console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
     const cache = (await db.get('stats', [season, stat.property.value])) ?? await stat.create_cache();
-    const newDates = seasonDates(season).filter(date => !cache.cached_dates.includes(date)).toArray();
+    const newDates = ;
     let numComplete = 0;
-    const setState = () => {
+    const setState = (n: number) => {
         CURRENT_TASK_QUEUE_STATE = {
             calculatingStat: STAT_TO_FILENAME_MAP[stat.property.value] ?? '',
-            progressNumerator: numComplete,
-            progressDenominator: newDates.length,
+            progressNumerator: n,
+            progressDenominator: seasonDates(season).toArray(),
         };
     }
 
-    setState();
+    setState(numComplete);
 
-    if (newDates.length > 0) {
+    if (seasonDates(season).some(date => !cache.cached_dates.includes(date))) {
         await stat.on_incremental(cache);
         cache.qualification_threshold = undefined;
 
         do {
-            for (const date of newDates) {
+            for (const date of seasonDates(season)) {
+                if (cache.cached_dates.includes(date)) {
+                    setState(++numComplete);
+                    continue;
+                }
+                
                 const bytes = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(bytes)) {
-                    numComplete += 1;
-                    setState();
-                    continue
+                    setState(++numComplete);
+                    continue;
                 }
 
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
-                    numComplete += 1;
-                    setState();
+                    setState(++numComplete);
                     continue;
                 }
                 await stat.apply(cache, bytes, subsidiaryBytes);
                 cache.cached_dates.push(date);
                 await db.put('stats', cache, [season, stat.property.value]);
-                numComplete += 1;
-                setState();
+                setState(++numComplete);
             }
         } while (await stat.on_finish_apply(cache) === 'rerun');
     }
@@ -239,36 +241,37 @@ async function calculateWASMCustomStat<T extends object>(stat: WASMCustomStat<T>
     const cacheInDB: StatCache<T> | undefined = await db.get('stats', [season, stat.property.value]) as StatCache<T> | undefined;
     const cachedDates = cacheInDB?.cached_dates ?? [];
 
-    const newDates = seasonDates(season).filter(date => !cachedDates.includes(date)).toArray();
-
     let numComplete = 0;
-    const setState = () => {
+    const setState = (n: number) => {
         CURRENT_TASK_QUEUE_STATE = {
             calculatingStat: STAT_TO_FILENAME_MAP[stat.property.value] ?? '',
-            progressNumerator: numComplete,
-            progressDenominator: newDates.length,
+            progressNumerator: n,
+            progressDenominator: seasonDates(season).toArray().length,
         };
     }
 
-    setState();
+    setState(numComplete);
 
-    if (newDates.length > 0) {
+    if (seasonDates(season).some(date => !cachedDates.includes(date))) {
         if (cacheInDB) cacheInDB.qualification_threshold = undefined;
         stat.deserialize_cache(cacheInDB);
         stat.on_incremental();
 
         do {
-            for (const date of newDates) {
+            for (const date of seasonDates(season)) {
+                if (stat.serialize_cache().cached_dates.includes(date)) {
+                    setState(++numComplete);
+                    continue;
+                }
+                
                 const bytes = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(bytes)) {
-                    numComplete += 1;
-                    setState();
+                    setState(++numComplete);
                     continue;
                 }
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
-                    numComplete += 1;
-                    setState();
+                    setState(++numComplete);
                     continue;
                 }
                 stat.apply(bytes, subsidiaryBytes);
@@ -277,7 +280,7 @@ async function calculateWASMCustomStat<T extends object>(stat: WASMCustomStat<T>
                 stat.deserialize_cache(cache);
                 await db.put('stats', cache, [season, stat.property.value]);
                 numComplete += 1;
-                setState();
+                setState(numComplete);
             }
         } while (stat.on_finish_apply() === 'rerun');
     }

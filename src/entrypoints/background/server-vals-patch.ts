@@ -25,7 +25,7 @@ export async function createServerValsPatch(playerId: number): Promise<ServerVal
 
             const dist = (await getDistributionData(statInstance, season, db))!;
             const value: number | null = statValue == null ? null : await statInstance.value(statValue);
-            const zScore: number | null = value == null ? null : stat.invert === true ? (dist.mean - value) / dist.stdev : (value - dist.mean) / dist.stdev;
+            const zScore: number | null = value == null ? null : stat.invert ? (dist.mean - value) / dist.stdev : (value - dist.mean) / dist.stdev;
             const percentile: number | null = zScore == null ? null : clamp(zScoreToPercentile(zScore), 1, 100);
 
             patches.patches.push({
