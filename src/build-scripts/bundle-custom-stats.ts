@@ -39,23 +39,25 @@ async function bundleEntry(srcPath: string) {
     })
 }
 
+async function bundleCustomStats() {
+    execSync('cd src/rust-wasm && /bin/bash ./build.sh');
+
+    for (const path of await getCustomStatPaths()) {
+        await bundleEntry(path);
+    }
+
+    for (const file of await readdir("src/rust-wasm/pkg", { recursive: false, withFileTypes: true })) {
+        const from = resolve(join(file.parentPath, file.name));
+        const to = resolve(`./.output/custom_stats/${file.name}`);
+        await copyFile(from, to);
+    }
+}
+
 export function bundleCustomStatsPlugin(): Plugin {
     return {
         name: 'bundle-custom-stats',
         enforce: 'pre',
         apply: 'build',
-        async closeBundle() {
-            execSync('cd src/rust-wasm && /bin/bash ./build.sh');
-
-            for (const path of await getCustomStatPaths()) {
-                await bundleEntry(path);
-            }
-
-            for (const file of await readdir("src/rust-wasm/pkg", { recursive: false, withFileTypes: true })) {
-                const from = resolve(join(file.parentPath, file.name));
-                const to = resolve(`./.output/custom_stats/${file.name}`);
-                await copyFile(from, to);
-            }
-        }
+        buildStart: bundleCustomStats,
     }
 }
