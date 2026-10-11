@@ -3,15 +3,12 @@ An extension for Baseball Savant to add custom stats.
 
 # Installation
 
-*Releases are on the **Releases** tab on the right hand side of the GitHub page.*
-
 ### Firefox
+*Releases are on the **Releases** tab on the right hand side of the GitHub page.*
 Download the `xpi` file in Firefox and it should give a pop-up asking to install.
 
 ### Chrome
-1. Go to [`chrome://extensions`](chrome://extensions)
-2. Enable the developer mode toggle in the top right.
-3. Drag and drop the `zip` file. (Web Store coming soon™)
+Go to the unlisted page on the [Chrome Web Store](https://chromewebstore.google.com/detail/baseballsavant-extras/joikioiafgloehednfdcdjmohgbejgll).
 
 Note: Firefox currently supports automatic updates, while Chrome currently does not. If you have any issues, make sure you're on the latest version before opening a bug report.
 
