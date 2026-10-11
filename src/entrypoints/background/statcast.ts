@@ -185,13 +185,12 @@ async function calculateJSCustomStat<T extends object>(stat: JSCustomStat<T>, se
     console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
     const cache = (await db.get('stats', [season, stat.property.value])) ?? await stat.create_cache();
-    const newDates = ;
     let numComplete = 0;
     const setState = (n: number) => {
         CURRENT_TASK_QUEUE_STATE = {
             calculatingStat: STAT_TO_FILENAME_MAP[stat.property.value] ?? '',
             progressNumerator: n,
-            progressDenominator: seasonDates(season).toArray(),
+            progressDenominator: seasonDates(season).toArray().length,
         };
     }
 
