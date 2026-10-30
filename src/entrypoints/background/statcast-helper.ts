@@ -86,8 +86,8 @@ export async function getDaySubsidiaryFromURL(date: string): Promise<Uint8Array<
     return bytes;
 }
 
-export function isEmptyDay(bytes: Uint8Array<ArrayBuffer>): boolean {
-    return bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))
+export function isEmptyDay(bytes: Uint8Array<ArrayBuffer> | undefined | null): boolean {
+    return bytes == undefined || bytes.indexOf("\n".charCodeAt(0)) == bytes.lastIndexOf("\n".charCodeAt(0))
 }
 
 export async function getDayBytesFromDB(date: string, db: IDBPDatabase<StatcastDB>): Promise<Uint8Array<ArrayBuffer>> {

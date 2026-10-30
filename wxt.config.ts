@@ -11,6 +11,7 @@ export default defineConfig({
         server: { cors: { origin: [/^chrome-extension:\/\//, "null"] } },
     }),
     srcDir: "src",
+    publicDir: "src/public",
     modules: ['@wxt-dev/auto-icons'],
     autoIcons: {
         baseIconPath: 'assets/icon.svg',

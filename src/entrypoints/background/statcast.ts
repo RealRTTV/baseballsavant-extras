@@ -182,9 +182,10 @@ async function createCacheStatcastDataTasks(db: IDBPDatabase<StatcastDB>): Promi
 }
 
 async function calculateJSCustomStat<T extends object>(stat: JSCustomStat<T>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
+    const start = performance.now();
     console.log(`[JS] Calculating ${stat.property.value} for ${season}...`);
 
-    const cache = (await db.get('stats', [season, stat.property.value])) ?? await stat.create_cache();
+    const cache = (await db.get('stats', [season, stat.property.value])) ?? (await stat.create_cache());
     let numComplete = 0;
     const setState = (n: number) => {
         CURRENT_TASK_QUEUE_STATE = {
@@ -203,42 +204,45 @@ async function calculateJSCustomStat<T extends object>(stat: JSCustomStat<T>, se
         do {
             for (const date of seasonDates(season)) {
                 if (cache.cached_dates.includes(date)) {
+                    cache.cached_dates.push(date);
                     setState(++numComplete);
                     continue;
                 }
                 
                 const bytes = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(bytes)) {
+                    cache.cached_dates.push(date);
                     setState(++numComplete);
                     continue;
                 }
 
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
-                if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
+                if (stat.property.wants_subsidiary_csv && isEmptyDay(subsidiaryBytes)) {
+                    cache.cached_dates.push(date);
                     setState(++numComplete);
                     continue;
                 }
                 await stat.apply(cache, bytes, subsidiaryBytes);
                 cache.cached_dates.push(date);
-                await db.put('stats', cache, [season, stat.property.value]);
                 setState(++numComplete);
             }
         } while (await stat.on_finish_apply(cache) === 'rerun');
+
+        const distData = await distributionDataJS(stat, cache);
+        await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
+        console.log(stat.property.value, distData);
+        await db.put('stats', cache, [season, stat.property.value]);
     }
 
-    const distData = await distributionDataJS(stat, cache);
-    await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
-    console.log(stat.property.value, distData);
-
-    console.log(`[JS] Calculated ${stat.property.value} for ${season}`);
+    console.log(`[JS] Calculated ${stat.property.value} for ${season} in ${performance.now() - start}ms`);
 }
 
 async function calculateWASMCustomStat<T extends object>(stat: WASMCustomStat<T>, season: number, db: IDBPDatabase<StatcastDB>): Promise<void> {
     const start = performance.now();
     console.log(`[WASM] Calculating ${stat.property.value} for ${season}...`);
 
-    const cacheInDB: StatCache<T> | undefined = await db.get('stats', [season, stat.property.value]) as StatCache<T> | undefined;
-    const cachedDates = cacheInDB?.cached_dates ?? [];
+    let cache: StatCache<T> | undefined = await db.get('stats', [season, stat.property.value]) as StatCache<T> | undefined;
+    const cachedDates = cache?.cached_dates ?? [];
 
     let numComplete = 0;
     const setState = (n: number) => {
@@ -252,46 +256,60 @@ async function calculateWASMCustomStat<T extends object>(stat: WASMCustomStat<T>
     setState(numComplete);
 
     if (seasonDates(season).some(date => !cachedDates.includes(date))) {
-        if (cacheInDB) cacheInDB.qualification_threshold = undefined;
-        stat.deserialize_cache(cacheInDB);
+        if (cache != undefined) cache.qualification_threshold = undefined;
+        stat.deserialize_cache(cache);
         stat.on_incremental();
+        cache = stat.serialize_cache();
+
+        // we always try to keep the JS side ahead or equal. to not need two states (as that can have a conflict if both js & wasm side are dirty in control flow).
+        let isJSSideDirty = false;
 
         do {
+            if (isJSSideDirty) {
+                stat.deserialize_cache(cache);
+            }
+            
             for (const date of seasonDates(season)) {
-                if (stat.serialize_cache().cached_dates.includes(date)) {
+                if (cache.cached_dates.includes(date)) {
                     setState(++numComplete);
                     continue;
                 }
                 
                 const bytes = await getDayBytesFromDB(date, db);
                 if (isEmptyDay(bytes)) {
+                    cache.cached_dates.push(date);
+                    isJSSideDirty = true;
                     setState(++numComplete);
                     continue;
                 }
+                
                 let subsidiaryBytes = stat.property.wants_subsidiary_csv ? await getDaySubsidiaryBytesFromDB(date, db) : null;
                 if (stat.property.wants_subsidiary_csv && subsidiaryBytes !== null && isEmptyDay(subsidiaryBytes)) {
+                    cache.cached_dates.push(date);
+                    isJSSideDirty = true;
                     setState(++numComplete);
                     continue;
                 }
+
+                if (isJSSideDirty) {
+                    stat.deserialize_cache(cache);
+                    isJSSideDirty = false;
+                }
                 stat.apply(bytes, subsidiaryBytes);
-                const cache = stat.serialize_cache();
+                cache = stat.serialize_cache();
                 cache.cached_dates.push(date);
-                stat.deserialize_cache(cache);
-                await db.put('stats', cache, [season, stat.property.value]);
-                numComplete += 1;
-                setState(numComplete);
+                isJSSideDirty = true;
+                setState(++numComplete);
             }
-        } while (stat.on_finish_apply() === 'rerun');
+        } while ((stat.on_finish_apply() === 'rerun' && (cache = stat.serialize_cache())));
+
+        const distData = distributionDataWASM(stat, cache);
+        await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
+        console.log(stat.property.value, distData);
+        await db.put('stats', cache, [season, stat.property.value]);
     }
 
-    const cache = stat.serialize_cache();
-    const distData = distributionDataWASM(stat, cache);
-    await modifyAdditionalStatData(stat.property, season, db, async data => { data.distributionData = distData; })
-    console.log(stat.property.value, distData);
-    await db.put('stats', cache, [season, stat.property.value]);
-
-    const end = performance.now();
-    console.log(`[WASM] Calculated ${stat.property.value} for ${season} in ${end - start}ms`);
+    console.log(`[WASM] Calculated ${stat.property.value} for ${season} in ${performance.now() - start}ms`);
 }
 
 function createCalculateStatsTasks(db: IDBPDatabase<StatcastDB>): (() => Promise<void>)[] {

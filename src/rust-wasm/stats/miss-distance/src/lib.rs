@@ -17,8 +17,28 @@ struct Cache {
 
 #[derive(Serialize, Deserialize, Default)]
 struct PlayerCache {
-    #[serde(rename = "n")]
-    misses: Vec<f64>,
+    #[serde(rename = "n", with = "base64_serde")]
+    misses: Vec<f32>,
+}
+
+mod base64_serde {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<f32>, D::Error> {
+        let mut buf = Vec::new();
+        STANDARD.decode_vec(String::deserialize(deserializer)?.into_bytes(), &mut buf).map_err(D::Error::custom)?;
+        Ok(buf.chunks_exact(4)
+            .filter_map::<[u8; 4], _>(|chunk| chunk.try_into().ok())
+            .map(f32::from_ne_bytes)
+            .collect::<Vec<_>>())
+    }
+
+    pub fn serialize<S: Serializer>(data: &Vec<f32>, serializer: S) -> Result<S::Ok, S::Error> {
+        let ptr = data.as_ptr().cast::<u8>();
+        let len = data.len() * size_of::<f32>();
+        STANDARD.encode(unsafe { core::slice::from_raw_parts(ptr, len) }).serialize(serializer)
+    }
 }
 
 static mut CACHE: Cache = Cache {
@@ -53,7 +73,7 @@ export_ffi! {
             game_pk: i64,
             at_bat_number: u32,
             pitch_number: u32,
-//             pitch_type: String,
+            // pitch_type: String,
 
             pitcher: u32,
         }
@@ -100,7 +120,7 @@ export_ffi! {
             let entry = map.entry(pitcher).or_insert_with(Default::default);
             let miss_distance = f64::hypot(plate_x_in - inferred_x_in, plate_z_in - inferred_z_in);
             if !miss_distance.is_nan() {
-                entry.misses.push(miss_distance);
+                entry.misses.push(miss_distance as f32);
             }
         }
     }
@@ -113,7 +133,7 @@ export_ffi! {
         if player.misses.is_empty() {
             0.0
         } else {
-            *(player.misses.select_nth_unstable_by(mid, |a, b| a.total_cmp(b)).1)
+            *(player.misses.select_nth_unstable_by(mid, |a, b| a.total_cmp(b)).1) as f64
         }
     }
 
